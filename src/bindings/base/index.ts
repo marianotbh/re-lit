@@ -1,0 +1,17 @@
+// import "./attr";
+import "./checked";
+import "./component";
+// import "./css";
+// import "./disable";
+// import "./enable";
+import "./event";
+// import "./for";
+import "./if";
+import "./input";
+import "./interpolate";
+// import "./else";
+// import "./options";
+import "./ref";
+// import "./style";
+import "./text";
+import "./value";

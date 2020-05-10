@@ -1,0 +1,26 @@
+{
+	"name": "spur",
+	"version": "1.0.0",
+	"description": "smol app lib",
+	"main": "build/index.js",
+	"types": "build/index.d.ts",
+	"directories": {
+		"test": "test"
+	},
+	"scripts": {
+		"test": "jest"
+	},
+	"author": "marianotbh",
+	"license": "ISC",
+	"dependencies": {
+		"reflect-metadata": "^0.1.13"
+	},
+	"devDependencies": {
+		"@types/jest": "^25.2.1",
+		"@types/node": "^13.1.6",
+		"jest": "^25.3.0",
+		"ts-jest": "^25.4.0",
+		"ts-loader": "^6.2.1",
+		"typescript": "^3.7.2"
+	}
+}
