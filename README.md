@@ -24,10 +24,16 @@ import {mount} from "re-active";
 const rootNode = document.querySelector("main");
 
 mount(rootNode, {
-    context: {
-        user: "foo"
-    }
+    who: "world"
 });
+```
+
+then you can reference you bound context anywhere inside that element like so
+
+```html
+<main>
+    <h1>hello, {{ who }}!</h1>
+</main>
 ```
 
 ## <span style="color: pink">#</span> reactivity ⚡
