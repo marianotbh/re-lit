@@ -4,6 +4,8 @@ export class BindingContext<T extends object = object> {
 	public parents: Array<object>;
 	public parentContext: BindingContext | null;
 	public root: object;
+	public ref: HTMLElement;
+	public slot: DocumentFragment | null;
 
 	constructor(vm: T, parentContext: BindingContext | null = null) {
 		this.vm = vm;

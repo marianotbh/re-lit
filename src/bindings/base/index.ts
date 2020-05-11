@@ -12,6 +12,7 @@ import "./interpolate";
 // import "./else";
 // import "./options";
 import "./ref";
+import "./slot";
 // import "./style";
 import "./text";
 import "./value";

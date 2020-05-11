@@ -1,15 +1,17 @@
 import { Params } from "./params";
 
 export abstract class ViewModel {
-	onInit(): void {}
-	onDispose(): void {}
+	abstract onInit?(): void;
+	abstract onDispose?(): void;
 }
 
-export type CleanViewModel<TParams = {}> = (params: Params<TParams>) => object;
+export type CleanViewModel<TParams extends object = object> = (params: Params<TParams>) => object;
 
-export type ClassViewModel<TParams = {}> = { new (params: Params<TParams>): object };
+export type ClassViewModel<TParams extends object = object> = {
+	new (params: Params<TParams>): object;
+};
 
-type SimpleVM = { dispose?(): void };
+export type SimpleVM = { dispose?(): void };
 
 export type ViewModelFactory = (params: Params<any>) => ViewModel | SimpleVM;
 
@@ -19,7 +21,7 @@ export function createViewModel(vm: any): ViewModelFactory {
 			return (params: Params<any>) => {
 				const instance = new vm(params);
 
-				if (instance instanceof ViewModel) {
+				if (instance instanceof ViewModel && typeof instance.onInit !== "undefined") {
 					instance.onInit();
 				}
 

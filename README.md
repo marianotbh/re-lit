@@ -4,7 +4,15 @@ basically a knockoff of knockoutjs and vue
 
 ## <span style="color: pink">#</span> what is re-active? 🤔
 
-spur is a just another reactive library/small framework, based on the mvvm and publish/subscribe patterns. this is just an experiment for now, so please ignore
+re-active is just another reactive library/small framework, based on the [MVVM](https://www.google.com/search?q=mvvm) and [Publish/Subscribe](https://www.google.com/search?q=publish+subscribe+pattern) patterns. this is just an experiment for now, so please ignore
+
+## <span style="color: pink">#</span> getting started 🏇
+
+install through npm
+
+```
+npm install re-active
+```
 
 ## <span style="color: pink">#</span> mount your application 🚀
 
@@ -24,7 +32,7 @@ mount(rootNode, {
 
 ## <span style="color: pink">#</span> reactivity ⚡
 
-as i mentioned before, spur is based on the publish/subscribe pattern. for this, i've come up with two operators, `observable` and `computed`.
+re-active is based on the publish/subscribe pattern. for this, it makes use of two operators: `observable` and `computed`.
 
 ```javascript
 import {observable, computed} from "re-active";
@@ -48,10 +56,16 @@ console.log(computed.value);
 
 in order to define a component you must call `defineComponent` somewhere in your application like this: 
 
-```javascript
+```typescript
 import {defineComponent} from "re-active";
 
-defineComponent("todo", {
+type TodoParams = {
+    id: number;
+    text: string;
+    done: boolean;
+};
+
+defineComponent<TodoParams>("todo", {
     template: `
         <label>
             <input type="checkbox" :checked="done" />

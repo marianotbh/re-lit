@@ -1,5 +1,5 @@
 import { handle } from "../handle";
-import { createComponent, isComponent } from "../../components";
+import { createComponent, isComponent } from "../../components/component";
 import { ViewModel } from "../../components/vm";
 import { bindChildren } from "../bind";
 import { addDisposeCallback } from "../../dom-tracking";
@@ -11,6 +11,16 @@ type ComponentBindingValue = {
 	name: string;
 	params: Params<{}>;
 };
+
+function getSlot(node: HTMLElement): DocumentFragment | null {
+	if (node.innerHTML.trim().length) {
+		const slot = createTemplate(node.innerHTML);
+		node.innerHTML = null;
+		return slot;
+	} else {
+		return null;
+	}
+}
 
 handle<ComponentBindingValue>("component", {
 	controlsChildren: true,
@@ -25,36 +35,27 @@ handle<ComponentBindingValue>("component", {
 			const { template, viewModel } = createComponent(name);
 
 			params.ref = node;
+			context.ref = node;
 
-			if (node.innerHTML.trim().length) {
-				const slot = createTemplate(node.innerHTML);
-				params.slot = slot;
-				node.innerHTML = null;
-			} else {
-				params.slot = null;
-			}
+			const slot = getSlot(node);
+			params.slot = slot;
+			context.slot = slot;
 
 			node.append(template.cloneNode(true));
 
-			if (typeof viewModel !== "undefined") {
-				const vmInstance = viewModel(params);
+			const vmInstance = viewModel(params);
 
-				const componentContext = context.createChild(vmInstance);
+			const componentContext = context.createChild(vmInstance);
 
-				addDisposeCallback(node, () => {
-					if (vmInstance instanceof ViewModel) {
-						vmInstance.onDispose();
-					} else if (typeof vmInstance.dispose === "function") {
-						vmInstance.dispose();
-					}
-				});
+			addDisposeCallback(node, () => {
+				if (vmInstance instanceof ViewModel) {
+					vmInstance.onDispose();
+				} else if (typeof vmInstance.dispose === "function") {
+					vmInstance.dispose();
+				}
+			});
 
-				bindChildren(node, componentContext, true);
-			} else {
-				const componentContext = context.createChild(params);
-
-				bindChildren(node, componentContext, true);
-			}
+			bindChildren(node, componentContext, true);
 		}
 	}
 });

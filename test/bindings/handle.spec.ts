@@ -9,11 +9,11 @@ describe("handle", () => {
 			onUpdate: () => {}
 		};
 
-		expect(isHandled(handlerName)).toBeFalsy();
+		expect(isHandled(handlerName)).toBe(false);
 
 		handle(handlerName, handler);
 
-		expect(isHandled(handlerName)).toBeTruthy();
+		expect(isHandled(handlerName)).toBe(true);
 	});
 
 	it("should not admit invalid handler names", () => {

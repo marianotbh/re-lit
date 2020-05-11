@@ -1,5 +1,6 @@
-import { isComponent } from "../components";
+import { isComponent } from "../components/component";
 import { toCamel } from "../utils";
+import { isHandled } from "./handle";
 
 type AttributeBindingExpression = [string, string];
 
@@ -13,10 +14,11 @@ export function process(node: Node): AttributeBindingExpression[] | null {
 	const processed = new Array<AttributeBindingExpression>();
 
 	if (node instanceof HTMLElement) {
-		if (isComponent(node)) {
-			const name = node.tagName.toLowerCase();
+		const tagName = node.tagName.toLowerCase();
+
+		if (isComponent(tagName)) {
 			const params = getParams([...node.attributes]);
-			const expression = `{ name: "${name}", params: ${params} }`;
+			const expression = `{ name: "${tagName}", params: ${params} }`;
 			processed.push(["component", expression]);
 		}
 
@@ -32,13 +34,20 @@ export function process(node: Node): AttributeBindingExpression[] | null {
 	return processed.length ? processed : null;
 }
 
+export function getOptions(attrs: Attr[]): string {
+	return `{${attrs
+		.map(({ name, value }) => {
+			return name + (value ? `: ${value}` : "");
+		})
+		.join(", ")
+		.trim()}}`;
+}
+
 export function getParams(attrs: Attr[]): string {
 	return `{${attrs
 		.filter(attr => attr.name.startsWith("$"))
-		.map(attr => {
-			const name = toCamel(attr.name.replace("$", ""));
-			const value = `${attr.value ? `: ${attr.value}` : ""}`;
-			return name + value;
+		.map(({ name, value }) => {
+			return toCamel(name.replace("$", "")) + (value ? `: ${value}` : "");
 		})
 		.join(", ")
 		.trim()}}`;
