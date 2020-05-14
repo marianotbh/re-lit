@@ -6,7 +6,7 @@ export class Subscription<T = unknown> extends Disposable {
 	private onDispose: Function;
 	public isDisposed: boolean;
 
-	constructor(onUpdate: Function, onDispose: Function = () => {}) {
+	constructor(onUpdate: (val: T) => void, onDispose?: () => void) {
 		super();
 		this.onUpdate = onUpdate;
 		this.onDispose = onDispose;
@@ -18,9 +18,9 @@ export class Subscription<T = unknown> extends Disposable {
 	}
 
 	dispose(): void {
-		if (!this.isDisposed && this.onDispose !== null) {
-			this.onDispose();
+		if (!this.isDisposed && typeof this.onDispose === "function") {
 			this.isDisposed = true;
+			this.onDispose();
 		}
 	}
 

@@ -5,7 +5,7 @@ import "./component";
 // import "./disable";
 // import "./enable";
 import "./event";
-// import "./for";
+import "./for";
 import "./if";
 import "./input";
 import "./interpolate";

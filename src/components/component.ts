@@ -1,4 +1,10 @@
-import { createViewModel, CleanViewModel, ClassViewModel, ViewModelFactory } from "./vm";
+import {
+	createViewModel,
+	CleanViewModel,
+	ClassViewModel,
+	ViewModelFactory,
+	FunctionViewModel
+} from "./vm";
 import { createTemplate } from "./template";
 
 export type ComponentFactory = {
@@ -8,7 +14,7 @@ export type ComponentFactory = {
 
 export type ComponentDefinition<TParams extends object = object> = {
 	template: string;
-	viewModel?: CleanViewModel<TParams> | ClassViewModel<TParams>;
+	viewModel?: CleanViewModel<TParams> | ClassViewModel<TParams> | FunctionViewModel<TParams>;
 };
 
 export type Def<TParams extends object = object> = ComponentDefinition<TParams>;

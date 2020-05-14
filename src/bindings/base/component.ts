@@ -6,10 +6,12 @@ import { addDisposeCallback } from "../../dom-tracking";
 import { createTemplate } from "../../components/template";
 import { Params } from "../../components/params";
 import { unwrap } from "../../operators";
+import { setContext } from "../registry";
 
 type ComponentBindingValue = {
 	name: string;
 	params: Params<{}>;
+	alias: string | null;
 };
 
 function getSlot(node: HTMLElement): DocumentFragment | null {
@@ -24,38 +26,49 @@ function getSlot(node: HTMLElement): DocumentFragment | null {
 
 handle<ComponentBindingValue>("component", {
 	controlsChildren: true,
-	onUpdate(value, node, context) {
-		if (!(node instanceof HTMLElement)) {
-			throw new Error("component handler can only be applied on HTMLElement");
-		}
+	onBind(value, node, context) {
+		if (node instanceof HTMLElement) {
+			const { name, params = <Params>{}, alias } = unwrap(value);
 
-		const { name, params = <Params>{} } = unwrap(value);
+			if (isComponent(name)) {
+				const { template, viewModel } = createComponent(name);
 
-		if (isComponent(name)) {
-			const { template, viewModel } = createComponent(name);
+				const slot = getSlot(node);
+				params.slot = slot;
+				context.slot = slot;
 
-			params.ref = node;
-			context.ref = node;
-
-			const slot = getSlot(node);
-			params.slot = slot;
-			context.slot = slot;
-
-			node.append(template.cloneNode(true));
-
-			const vmInstance = viewModel(params);
-
-			const componentContext = context.createChild(vmInstance);
-
-			addDisposeCallback(node, () => {
-				if (vmInstance instanceof ViewModel) {
-					vmInstance.onDispose();
-				} else if (typeof vmInstance.dispose === "function") {
-					vmInstance.dispose();
+				if (alias !== null) {
+					debugger;
+					const el = document.createElement(alias);
+					el.append(template.cloneNode(true));
+					node.parentElement.replaceChild(el, node);
+					setContext(el, context);
+					params.ref = el;
+					context.ref = el;
+				} else {
+					node.append(template.cloneNode(true));
+					params.ref = node;
+					context.ref = node;
 				}
-			});
 
-			bindChildren(node, componentContext, true);
+				const vmInstance = viewModel(params);
+
+				const componentContext = context.createChild(vmInstance);
+
+				addDisposeCallback(context.ref, () => {
+					if (vmInstance instanceof ViewModel) {
+						vmInstance.onDispose();
+					} else if (typeof vmInstance.dispose === "function") {
+						vmInstance.dispose();
+					}
+				});
+
+				bindChildren(context.ref, componentContext, true);
+			} else {
+				console.warn(`"${name}" is not defined as a component, handler will be ignored`);
+			}
+		} else {
+			throw new Error(`cannot handle "component" on non-HTMLElement`);
 		}
 	}
 });

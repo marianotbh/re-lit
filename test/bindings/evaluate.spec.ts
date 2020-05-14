@@ -20,7 +20,7 @@ describe("evaluate", () => {
 			evaluate(expression, bindingContext);
 		};
 
-		expect(evaluation).toThrowError(`failed to evaluate expression: ${expression}`);
+		expect(evaluation).toThrowError(/^failed to evaluate expression/);
 	});
 
 	it("should convert a expression string to its actual value given a context", () => {

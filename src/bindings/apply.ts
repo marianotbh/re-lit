@@ -6,6 +6,8 @@ import { Operator } from "../subscribables";
 
 type ValueAccessor<T = unknown> = () => T;
 
+const appliedHandlers = new WeakMap<Node, Set<string>>();
+
 export async function apply(
 	bindingName: string,
 	node: Node,
@@ -52,7 +54,22 @@ export async function apply(
 		if (controlsChildren) {
 			shouldBreak = true;
 		}
+
+		registerHandler(node, bindingName);
 	}
 
 	return shouldBreak;
+}
+
+function registerHandler(node: Node, handler: string) {
+	if (appliedHandlers.has(node)) {
+		appliedHandlers.get(node).add(handler);
+	} else {
+		const handlers = new Set<string>([handler]);
+		appliedHandlers.set(node, handlers);
+	}
+}
+
+export function handlersFor(node: Node) {
+	return [...appliedHandlers.get(node)?.values()];
 }

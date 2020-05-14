@@ -14,6 +14,6 @@ export function evaluate(expression: string, context: BindingContext) {
 
 		return fn(context, context.vm);
 	} catch (error) {
-		throw new Error(`failed to evaluate expression: ${expression}`);
+		throw new Error(`failed to evaluate expression "${expression}": ${error}`);
 	}
 }

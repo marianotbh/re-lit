@@ -30,4 +30,16 @@ export class BindingContext<T extends object = object> {
 	createChild<K extends object = object>(vm: K): BindingContext<K> {
 		return new BindingContext<K>(vm, this);
 	}
+
+	set(name: string, value: any) {
+		Object.defineProperty(this, name, { value, enumerable: true });
+	}
+
+	get(name: string) {
+		return Object.getOwnPropertyDescriptor(this, name).value;
+	}
+
+	extend(values: object) {
+		return { ...this, ...values };
+	}
 }

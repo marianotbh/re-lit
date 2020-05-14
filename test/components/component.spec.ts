@@ -1,5 +1,12 @@
-import { defineComponent } from "../../src/components";
+import { defineComponent, isComponent } from "../../src/components";
 
+test("isComponent", () => {
+	const node = document.createElement("some-undefined-component");
+
+	expect(isComponent(node.tagName.toLowerCase())).toBe(false);
+});
+
+describe("defineComponent", () => {});
 test("same component name can only be defined once", () => {
 	const testDefine = () => {
 		defineComponent("test-duplicate-definition", {

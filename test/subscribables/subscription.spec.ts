@@ -1,25 +1,24 @@
 import { Subscription } from "../../src/subscribables";
 
-test("subscription", () => {
-	let someValue = 0;
+describe("subscription", () => {
+	it("should invoke its subscriber when updated", done => {
+		const subscription = new Subscription<number>(val => {
+			expect(val).toEqual(123);
+			done();
+		});
 
-	// subscriber is the callback function that will be invoked everytime the update() method is called
-	const subscriber = (val: number) => {
-		someValue = val;
-	};
+		subscription.update(123);
+	});
 
-	// disposeCallback will be invoked when the dispose() method of the Subscription is called
-	const disposeCallback = () => {
-		someValue = 1;
-	};
-	const sub = new Subscription<number>(subscriber, disposeCallback);
+	it("should call dispose callback when dispose is invoked", done => {
+		const subscription = new Subscription(
+			() => {},
+			() => {
+				expect(subscription.isDisposed).toBe(true);
+				done();
+			}
+		);
 
-	sub.update(123);
-
-	expect(someValue).toBe(123);
-
-	sub.dispose();
-
-	expect(sub.isDisposed).toBeTruthy();
-	expect(someValue).toBe(1);
+		subscription.dispose();
+	});
 });

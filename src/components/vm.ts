@@ -1,9 +1,17 @@
 import { Params } from "./params";
+import { intercept } from "./proxy";
 
 export abstract class ViewModel {
 	abstract onInit?(): void;
 	abstract onDispose?(): void;
 }
+
+type ClassicFunction<TArgs = null, TReturnType = void> = {
+	new (args: TArgs): TReturnType;
+	prototype: TReturnType;
+};
+
+export type FunctionViewModel<TParams extends object = object> = ClassicFunction<TParams>;
 
 export type CleanViewModel<TParams extends object = object> = (params: Params<TParams>) => object;
 

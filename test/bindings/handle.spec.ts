@@ -1,4 +1,16 @@
-import { handle, isHandled, Handler } from "../../src/bindings";
+import { handle, isHandled, Handler, getHandler } from "../../src/bindings";
+
+test("getHandler should return null for an unhandled handler", () => {
+	const handler = getHandler("unhandled-handler");
+
+	expect(handler).toBe(null);
+});
+
+test("isHandled should return false for an unhandled handler", () => {
+	const result = isHandled("unhandled-handler");
+
+	expect(result).toBe(false);
+});
 
 describe("handle", () => {
 	it("should register a binding handler", () => {
@@ -9,11 +21,10 @@ describe("handle", () => {
 			onUpdate: () => {}
 		};
 
-		expect(isHandled(handlerName)).toBe(false);
-
 		handle(handlerName, handler);
 
 		expect(isHandled(handlerName)).toBe(true);
+		expect(getHandler(handlerName)).toBe(handler);
 	});
 
 	it("should not admit invalid handler names", () => {

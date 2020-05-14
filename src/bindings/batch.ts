@@ -1,6 +1,5 @@
 import { isComponent } from "../components/component";
 import { toCamel } from "../utils";
-import { isHandled } from "./handle";
 
 type AttributeBindingExpression = [string, string];
 
@@ -10,7 +9,7 @@ function isAttributeBindingExpression(
 	return obj !== null;
 }
 
-export function process(node: Node): AttributeBindingExpression[] | null {
+export function batch(node: Node): AttributeBindingExpression[] | null {
 	const processed = new Array<AttributeBindingExpression>();
 
 	if (node instanceof HTMLElement) {
@@ -18,7 +17,10 @@ export function process(node: Node): AttributeBindingExpression[] | null {
 
 		if (isComponent(tagName)) {
 			const params = getParams([...node.attributes]);
-			const expression = `{ name: "${tagName}", params: ${params} }`;
+			const alias = node.hasAttribute("as") ? node.getAttribute("as").trim() : null;
+			const expression = `{ name: "${tagName}", params: ${params}, alias: ${
+				alias ? `"${alias}"` : null
+			} }`;
 			processed.push(["component", expression]);
 		}
 
@@ -58,6 +60,8 @@ export function getBindings(attr: Attr): AttributeBindingExpression | null {
 		return [attr.name.substr(1), attr.value];
 	} else if (attr.name.startsWith("@")) {
 		return ["event", `{ ${attr.name.substr(1)}: ${attr.value} }`];
+	} else if (attr.value.startsWith("{{") && attr.value.endsWith("}}")) {
+		return ["attr", `{ ${attr.name}: ${attr.value.replace("{{", "").replace("}}", "")} }`];
 	} else {
 		return null;
 	}
