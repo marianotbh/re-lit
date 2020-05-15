@@ -28,7 +28,7 @@ handle<ComponentBindingValue>("component", {
 	controlsChildren: true,
 	onBind(value, node, context) {
 		if (node instanceof HTMLElement) {
-			const { name, params = <Params>{}, alias } = unwrap(value);
+			const { name, params = <Params>{}, alias = null } = unwrap(value);
 
 			if (isComponent(name)) {
 				const { template, viewModel } = createComponent(name);
@@ -37,8 +37,7 @@ handle<ComponentBindingValue>("component", {
 				params.slot = slot;
 				context.slot = slot;
 
-				if (alias !== null) {
-					debugger;
+				if (typeof alias === "string" && alias.length) {
 					const el = document.createElement(alias);
 					el.append(template.cloneNode(true));
 					node.parentElement.replaceChild(el, node);

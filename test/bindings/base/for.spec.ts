@@ -43,28 +43,23 @@ describe("for handler", () => {
 	});
 
 	it("should bind iterated components correctly", async () => {
-		const el = document.createElement("div");
+		const el = document.createElement("ul");
 		el.innerHTML = `
-            <ul :for="todos as todo">
-                <iterated-component $todo></iterated-component>
-            </ul>
-        `;
-
-		expect(
-			bind(
-				el,
-				BindingContext.from({
-					todos: observable(
-						new Array<Todo>(
-							{ id: 1, text: "laundry", done: false },
-							{ id: 2, text: "groceries", done: false },
-							{ id: 3, text: "homework", done: false },
-							{ id: 4, text: "excercise", done: false }
-						)
-					)
-				})
+			<iterated-component $todo></iterated-component>
+		`;
+		const context = BindingContext.from({
+			todos: observable(
+				new Array<Todo>(
+					{ id: 1, text: "laundry", done: false },
+					{ id: 2, text: "groceries", done: false },
+					{ id: 3, text: "homework", done: false },
+					{ id: 4, text: "excercise", done: false }
+				)
 			)
-		).resolves.toBeUndefined();
-		expect(el.firstElementChild.childElementCount).toBe(4);
+		});
+
+		await apply("for", el, () => "todos as todo", context);
+
+		expect(el.childElementCount).toBe(4);
 	});
 });
