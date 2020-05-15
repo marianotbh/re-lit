@@ -1,15 +1,17 @@
 type DisposeCallback = (node: Node) => void;
 
-type AttachedDomData = Set<DisposeCallback>;
-
-const domData = new WeakMap<Node, AttachedDomData>();
+const domData = new WeakMap<Node, Set<DisposeCallback>>();
 
 export function trackDOM(root: Node) {
+	if (typeof globalThis.MutationObserver === "undefined") {
+		throw new Error("this library needs to run on a browser that supports mutation observer");
+	}
+
 	const observer = new MutationObserver(function (mutations) {
 		mutations
 			.filter(mutation => mutation.type === "childList")
 			.forEach(({ removedNodes }) => {
-				removedNodes.forEach(removedNode => {
+				removedNodes.forEach(async removedNode => {
 					if (nodeHasData(removedNode)) {
 						disposeNode(removedNode);
 					}

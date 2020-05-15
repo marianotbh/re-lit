@@ -2,11 +2,19 @@ import { handle } from "../handle";
 import { addDisposeCallback } from "../../dom-tracking";
 import { unwrap } from "../../operators";
 
-type EventOptions = Record<string, EventListenerOrEventListenerObject>;
+type EventOptions = Record<string, Function>;
 
 handle<EventOptions>("event", {
 	onBind(value, node) {
-		const [eventName, listener] = Object.entries(unwrap(value))[0];
+		const [eventName, callback] = Object.entries(unwrap(value))[0];
+
+		const listener = (ev: Event) => {
+			if (ev instanceof CustomEvent && ev.detail) {
+				callback(ev.detail, ev);
+			} else {
+				callback(ev);
+			}
+		};
 
 		node.addEventListener(eventName, listener, false);
 

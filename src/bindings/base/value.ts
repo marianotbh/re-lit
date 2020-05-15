@@ -1,12 +1,11 @@
 import { handle } from "../handle";
-import { Operator } from "../../subscribables";
+import { Observable } from "../../subscribables";
 import { addDisposeCallback } from "../../dom-tracking";
+import { unwrap } from "../../operators";
 
 handle<string | number, HTMLInputElement>("value", {
 	onBind(value, node) {
-		if (value instanceof Operator) {
-			node.value = typeof value.value === "string" ? value.value : value.value.toString();
-
+		if (value instanceof Observable) {
 			const listener = () => {
 				value.value = node.value;
 			};
@@ -16,15 +15,9 @@ handle<string | number, HTMLInputElement>("value", {
 			addDisposeCallback(node, () => {
 				node.removeEventListener("change", listener, false);
 			});
-		} else {
-			node.value = typeof value === "string" ? value : value.toString();
 		}
 	},
 	onUpdate(value, node) {
-		if (value instanceof Operator) {
-			node.value = typeof value.value === "string" ? value.value : value.value.toString();
-		} else {
-			node.value = typeof value === "string" ? value : value.toString();
-		}
+		node.value = unwrap(value).toString();
 	}
 });
