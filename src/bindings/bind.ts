@@ -46,3 +46,5 @@ export async function bindChildren(node: Node, context: BindingContext, recursiv
 		);
 	}
 }
+
+export async function cleanNode(node: Node) {}

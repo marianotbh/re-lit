@@ -25,7 +25,7 @@ export function batch(node: Node): AttributeBindingExpression[] | null {
 		}
 
 		if (node.attributes.length) {
-			processed.push(...[...node.attributes].map(getBindings).filter(isAttributeBindingExpression));
+			processed.push(...[...node.attributes].map(getHandlers).filter(isAttributeBindingExpression));
 		}
 	} else if (node instanceof Text) {
 		if (/\{\{(.*?)\}\}/.test(node.textContent)) {
@@ -36,29 +36,23 @@ export function batch(node: Node): AttributeBindingExpression[] | null {
 	return processed.length ? processed : null;
 }
 
-export function getOptions(attrs: Attr[]): string {
-	return `{${attrs
-		.map(({ name, value }) => {
-			return name + (value ? `: ${value}` : "");
-		})
-		.join(", ")
-		.trim()}}`;
-}
-
 export function getParams(attrs: Attr[]): string {
 	return `{${attrs
 		.filter(attr => attr.name.startsWith("$"))
-		.map(({ name, value }) => {
-			return toCamel(name.replace("$", "")) + (value ? `: ${value}` : "");
+		.map(attr => {
+			attr.ownerElement.removeAttribute(attr.name);
+			return toCamel(attr.name.replace("$", "")) + (attr.value ? `: ${attr.value}` : "");
 		})
 		.join(", ")
 		.trim()}}`;
 }
 
-export function getBindings(attr: Attr): AttributeBindingExpression | null {
+export function getHandlers(attr: Attr): AttributeBindingExpression | null {
 	if (attr.name.startsWith(":")) {
+		attr.ownerElement.removeAttribute(attr.name);
 		return [attr.name.substr(1), attr.value];
 	} else if (attr.name.startsWith("@")) {
+		attr.ownerElement.removeAttribute(attr.name);
 		return ["event", `{ ${attr.name.substr(1)}: ${attr.value} }`];
 	} else if (attr.value.startsWith("{{") && attr.value.endsWith("}}")) {
 		return ["attr", `{ ${attr.name}: ${attr.value.replace("{{", "").replace("}}", "")} }`];
