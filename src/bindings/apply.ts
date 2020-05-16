@@ -1,17 +1,15 @@
 import { BindingContext } from "./context";
 import { getHandler } from "./handle";
-import { computed, unwrap } from "../operators";
+import { computed, unwrap, snap } from "../operators";
 import { addDisposeCallback } from "../dom-tracking";
-import { Operator } from "../subscribables";
-
-type ValueAccessor<T = unknown> = () => T;
+import { Operator, Computed, Observable } from "../subscribables";
 
 const appliedHandlers = new WeakMap<Node, Set<string>>();
 
 export async function apply(
 	bindingName: string,
 	node: Node,
-	accessor: ValueAccessor,
+	accessor: Computed<unknown>,
 	context: BindingContext = new BindingContext({})
 ): Promise<boolean> {
 	const handler = getHandler(bindingName);
@@ -21,20 +19,18 @@ export async function apply(
 	if (handler !== null) {
 		const { onBind, onUpdate, controlsChildren } = handler;
 
-		const accessedValue = accessor();
+		const accessedValue = accessor.value;
 
 		let bindingValue: Operator<typeof accessedValue>;
 
-		if (accessedValue instanceof Operator) {
+		if (accessedValue instanceof Observable) {
 			bindingValue = accessedValue;
 		} else {
-			const computedValue = computed<typeof accessedValue>(accessor);
-
 			addDisposeCallback(node, () => {
-				computedValue.dispose();
+				accessor.dispose();
 			});
 
-			bindingValue = computedValue;
+			bindingValue = accessor;
 		}
 
 		if (typeof onBind !== "undefined") {

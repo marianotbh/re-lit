@@ -55,7 +55,7 @@ export function getHandlers(attr: Attr): AttributeBindingExpression | null {
 		attr.ownerElement.removeAttribute(attr.name);
 		return ["event", `{ ${attr.name.substr(1)}: ${attr.value} }`];
 	} else if (attr.value.startsWith("{{") && attr.value.endsWith("}}")) {
-		return ["attr", `{ ${attr.name}: ${attr.value.replace("{{", "").replace("}}", "")} }`];
+		return ["attr", `{ '${attr.name}': ${attr.value.replace("{{", "").replace("}}", "")} }`];
 	} else {
 		return null;
 	}

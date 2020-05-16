@@ -4,6 +4,7 @@ import { evaluate } from "./evaluate";
 import { apply } from "./apply";
 import { setContext, hasContext } from "./registry";
 import { shouldEvaluate } from "./handle";
+import { computed } from "../operators";
 
 export async function bind(
 	node: Node,
@@ -19,8 +20,9 @@ export async function bind(
 	if (processed !== null) {
 		const shouldBreak = await Promise.all(
 			processed.map(([name, expression]) => {
-				const value = shouldEvaluate(name) ? evaluate(expression, context) : expression;
-				const valueAccessor = () => value;
+				const valueAccessor = computed(() =>
+					shouldEvaluate(name) ? evaluate(expression, context) : expression
+				);
 				return apply(name, node, valueAccessor, context);
 			})
 		);

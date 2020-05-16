@@ -2,6 +2,7 @@ import { Subscribable } from "./subscribable";
 import { Subscription } from "./subscription";
 import { activate, sleep } from "../dependency-detection";
 import { Operator } from "./operator";
+import { snap } from "../operators";
 
 type EvaluatorFn<T = unknown> = () => T;
 
@@ -18,8 +19,14 @@ export class Computed<T = unknown> extends Operator<T> {
 		this.isDisposed = false;
 		this.dependencies = new Map();
 		this.evaluator = evaluator;
+
 		activate(this);
+
 		this.latestValue = evaluator();
+		if (typeof this.latestValue === "object" && this.latestValue != null) {
+			const _ = snap(<object>(<unknown>this.latestValue));
+		}
+
 		sleep();
 	}
 

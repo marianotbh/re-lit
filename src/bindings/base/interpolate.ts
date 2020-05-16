@@ -1,6 +1,7 @@
 import { handle } from "../handle";
 import { evaluate } from "../evaluate";
 import { apply } from "../apply";
+import { computed } from "../../operators";
 
 const mustacheMatcher = /\{\{(.*?)\}\}/g;
 
@@ -17,7 +18,12 @@ handle<string, Text>("interpolate", {
 				const expression = newNode.textContent.replace("{{", "").replace("}}", "");
 				const accessor = evaluate(expression, context);
 
-				apply("text", newNode, () => accessor, context);
+				apply(
+					"text",
+					newNode,
+					computed(() => accessor),
+					context
+				);
 			});
 		}
 	}
