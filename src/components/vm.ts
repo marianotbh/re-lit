@@ -1,5 +1,4 @@
 import { Params } from "./params";
-import { intercept } from "./proxy";
 
 export abstract class ViewModel {
 	abstract onInit?(): void;

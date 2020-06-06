@@ -7,8 +7,10 @@ export class BindingContext<T extends object = object> {
 	public ref: HTMLElement;
 	public slot: DocumentFragment | null;
 
-	constructor(vm: T, parentContext: BindingContext | null = null) {
+	constructor(vm: T, ref: HTMLElement, parentContext: BindingContext | null = null) {
 		this.vm = vm;
+		this.ref = ref;
+		this.slot = null;
 
 		if (parentContext !== null) {
 			this.parentContext = parentContext;
@@ -23,12 +25,12 @@ export class BindingContext<T extends object = object> {
 		}
 	}
 
-	static from<K extends object = object>(data: K) {
-		return new BindingContext<K>(data);
+	static from<K extends object = object>(data: K, ref: HTMLElement) {
+		return new BindingContext<K>(data, ref);
 	}
 
-	createChild<K extends object = object>(vm: K): BindingContext<K> {
-		return new BindingContext<K>(vm, this);
+	createChild<K extends object = object>(vm: K, ref: HTMLElement): BindingContext<K> {
+		return new BindingContext<K>(vm, ref, this);
 	}
 
 	set(name: string, value: any) {
@@ -36,7 +38,7 @@ export class BindingContext<T extends object = object> {
 	}
 
 	get(name: string) {
-		return Object.getOwnPropertyDescriptor(this, name).value;
+		return Object.getOwnPropertyDescriptor(this, name)?.value;
 	}
 
 	extend(values: object) {

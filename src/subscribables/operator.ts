@@ -9,3 +9,11 @@ export abstract class Operator<T = unknown> extends Subscribable<T> {
 		return this.latestValue;
 	}
 }
+
+export function isOperator<T = unknown>(value: any): value is Operator<T> {
+	return value instanceof Operator;
+}
+
+export function isArrayOperator<TItem = unknown>(value: any): value is Operator<TItem[]> {
+	return value instanceof Operator && Array.isArray(value.peek());
+}

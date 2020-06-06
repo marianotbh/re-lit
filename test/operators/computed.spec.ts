@@ -23,6 +23,5 @@ test("computed value should update according to its dependencies", () => {
 
 	someVal.value = 2;
 
-	const result = evaluator();
-	expect(computedValue.value).toEqual(result);
+	expect(computedValue.value).toEqual(3);
 });

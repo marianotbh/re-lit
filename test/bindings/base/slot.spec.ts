@@ -8,7 +8,7 @@ describe("slot handler", () => {
 		const slot = createTemplate(`<span>test template</span>`);
 		bindingContext.slot = slot;
 
-		await apply("slot", el, () => null, bindingContext);
+		await apply("slot", el, null, bindingContext);
 
 		expect(el.innerHTML).toBe(slot.firstElementChild.outerHTML);
 	});

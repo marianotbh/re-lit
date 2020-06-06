@@ -2,7 +2,7 @@ import { handle } from "../handle";
 import { unwrap } from "../../operators";
 
 handle<object | string, HTMLElement>("class", {
-	onUpdate(value, node, context) {
+	onUpdate(value, node) {
 		const className = unwrap(value);
 
 		if (typeof className === "object") {

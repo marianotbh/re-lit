@@ -60,10 +60,10 @@ console.log(computed.value);
 
 ## <span style="color: pink">#</span> using components 🧩
 
-in order to define a component you must call `defineComponent` somewhere in your application like this: 
+in order to define a component you must call `registerComponent` somewhere in your application like this: 
 
 ```typescript
-import {defineComponent} from "re-active";
+import {registerComponent} from "re-active";
 
 type TodoParams = {
     id: number;
@@ -71,7 +71,7 @@ type TodoParams = {
     done: boolean;
 };
 
-defineComponent<TodoParams>("todo", {
+registerComponent<TodoParams>("todo", {
     template: `
         <label>
             <input type="checkbox" :checked="done" />

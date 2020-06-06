@@ -1,5 +1,5 @@
 import { BindingContext } from "./context";
-import { Operator } from "src/subscribables";
+import { Operator } from "../subscribables";
 
 type HandlerEventHandler<TValue = unknown, TNode extends Node = Node> = (
 	value: TValue | Operator<TValue>,
@@ -9,13 +9,14 @@ type HandlerEventHandler<TValue = unknown, TNode extends Node = Node> = (
 
 export type Handler<TValue = unknown, TNode extends Node = Node> = {
 	controlsChildren?: boolean;
-	preventsEvaluation?: boolean;
+	evaluatesExpression?: boolean;
+	unwrapAccesor?: boolean;
 	onBind?: HandlerEventHandler<TValue, TNode>;
 	onUpdate?: HandlerEventHandler<TValue, TNode>;
 };
 
 const handlers = new Map<string, Handler>();
-const literalHandlers = new Set<string>();
+const appliedHandlers = new WeakMap<Node, Set<string>>();
 
 export function handle<TValue = unknown, TNode extends Node = Node>(
 	name: string,
@@ -30,10 +31,6 @@ export function handle<TValue = unknown, TNode extends Node = Node>(
 	)
 		throw new Error("Invalid handler name");
 
-	if (handler.preventsEvaluation) {
-		literalHandlers.add(name);
-	}
-
 	handlers.set(name, <object>handler);
 }
 
@@ -45,6 +42,17 @@ export function getHandler(name: string): Handler | null {
 	return handlers.get(name) ?? null;
 }
 
-export function shouldEvaluate(name: string) {
-	return !literalHandlers.has(name);
+export function registerHandler(node: Node, handler: string) {
+	if (appliedHandlers.has(node)) {
+		appliedHandlers.get(node)!.add(handler);
+	} else {
+		appliedHandlers.set(
+			node,
+			new Set<string>([handler])
+		);
+	}
+}
+
+export function handlersFor(node: Node) {
+	return appliedHandlers.has(node) ? [...appliedHandlers.get(node)!.values()] : null;
 }

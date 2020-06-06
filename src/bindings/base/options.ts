@@ -10,7 +10,7 @@ handle<Options, HTMLElement>("options", {
 		const options = unwrap(value);
 
 		if (node instanceof HTMLSelectElement) {
-			node.innerHTML = null;
+			node.innerHTML = "";
 			if (Array.isArray(options)) {
 				options.forEach(item => {
 					if (typeof item === "object") {

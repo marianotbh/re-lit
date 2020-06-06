@@ -14,17 +14,21 @@ handle<string, HTMLElement>("slot", {
 
 			if (slotName) {
 				const children = [...el.childNodes];
-				el =
-					children
-						.filter((el): el is HTMLElement => el instanceof HTMLElement)
-						.find(el => el.tagName.toLowerCase() === slotName) ?? null;
+				const found = children
+					.filter((el): el is HTMLElement => el instanceof HTMLElement)
+					.find(el => el.tagName.toLowerCase() === slotName);
+				if (typeof found !== "undefined") {
+					el = found;
+				}
 			}
 
-			node.innerHTML = null;
+			node.innerHTML = "";
 
 			node.append(el);
 
 			bindChildren(node, context);
+		} else {
+			throw new Error("context has no slot");
 		}
 	}
 });

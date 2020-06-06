@@ -12,7 +12,7 @@ handle<boolean, HTMLElement>("if", {
 					node.innerHTML = innerHTML;
 					bindChildren(node, context, true);
 				} else {
-					node.innerHTML = null;
+					node.innerHTML = "";
 				}
 			});
 
@@ -20,11 +20,11 @@ handle<boolean, HTMLElement>("if", {
 				node.innerHTML = innerHTML;
 				bindChildren(node, context, true);
 			} else {
-				node.innerHTML = null;
+				node.innerHTML = "";
 			}
 		} else {
 			if (!value) {
-				node.innerHTML = null;
+				node.innerHTML = "";
 			}
 		}
 	}

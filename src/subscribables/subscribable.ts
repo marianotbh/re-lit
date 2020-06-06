@@ -1,8 +1,8 @@
 import { Subscription } from "./subscription";
 
-type SubscriptionCallback<T = any> = (newValue: T) => void;
+type SubscriptionCallback<T = unknown> = (newValue: T) => void;
 
-export abstract class Subscribable<T = any> {
+export abstract class Subscribable<T = unknown> {
 	private subscriptions: Map<string, Set<Subscription>>;
 
 	constructor() {

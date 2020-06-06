@@ -2,7 +2,6 @@ import { Subscribable } from "./subscribable";
 import { Subscription } from "./subscription";
 import { activate, sleep } from "../dependency-detection";
 import { Operator } from "./operator";
-import { snap } from "../operators";
 
 type EvaluatorFn<T = unknown> = () => T;
 
@@ -19,19 +18,31 @@ export class Computed<T = unknown> extends Operator<T> {
 		this.isDisposed = false;
 		this.dependencies = new Map();
 		this.evaluator = evaluator;
-
-		activate(this);
-
-		this.latestValue = evaluator();
-		if (typeof this.latestValue === "object" && this.latestValue != null) {
-			const _ = snap(<object>(<unknown>this.latestValue));
-		}
-
-		sleep();
+		this.latestValue = null;
 	}
 
 	get value(): T {
-		this.latestValue = this.evaluator();
+		if (this.isPristine) {
+			this.isPristine = false;
+
+			activate(this);
+
+			const result = this.evaluator();
+
+			if (typeof result === "object" && result !== null) {
+				if (result instanceof Operator) {
+					this.attach(result);
+				} else {
+					this.attach(...trackDeps(result as any));
+				}
+			}
+
+			sleep();
+
+			this.latestValue = result;
+		} else {
+			this.latestValue = this.evaluator();
+		}
 
 		return this.latestValue;
 	}
@@ -40,13 +51,15 @@ export class Computed<T = unknown> extends Operator<T> {
 		this.publish(this.latestValue, "change");
 	}
 
-	attach(dependency: Subscribable) {
-		if (!this.isDisposed && !this.dependencies.has(dependency)) {
-			const subscription = dependency.subscribe(() => {
-				this.publish(this.value);
-			});
-			this.dependencies.set(dependency, subscription);
-		}
+	attach(...deps: Subscribable[]) {
+		deps.forEach(dep => {
+			if (!this.isDisposed && !this.dependencies.has(dep)) {
+				const subscription = dep.subscribe(() => {
+					this.publish(this.value);
+				});
+				this.dependencies.set(dep, subscription);
+			}
+		});
 	}
 
 	dispose() {
@@ -56,4 +69,20 @@ export class Computed<T = unknown> extends Operator<T> {
 			this.isDisposed = true;
 		}
 	}
+}
+
+function trackDeps(obj: object, deep: boolean = true): Subscribable[] {
+	return Array.from(
+		Object.entries(obj)
+			.reduce((deps, [_, value]) => {
+				if (value instanceof Operator) {
+					deps.add(value);
+				} else if (typeof value === "object" && value !== null && deep) {
+					trackDeps(value).forEach(dep => deps.add(dep));
+				}
+
+				return deps;
+			}, new Set<Subscribable>())
+			.values()
+	);
 }

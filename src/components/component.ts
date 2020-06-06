@@ -22,14 +22,14 @@ export type Def<TParams extends object = object> = ComponentDefinition<TParams>;
 const definitions = new Map<string, ComponentDefinition>();
 const factories = new Map<string, ComponentFactory>();
 
-export function defineComponent<TParams extends object = object>(
+export function registerComponent<TParams extends object = object>(
 	name: string,
 	{ template, viewModel }: ComponentDefinition<TParams>
 ): void {
 	if (definitions.has(name)) {
-		throw new Error(`Component ${name} is already registered`);
+		throw new Error(`component "${name}" is already registered`);
 	} else if (template.trim().length === 0) {
-		throw new Error(`Component ${name} has no template`);
+		throw new Error(`component "${name}" has no template`);
 	} else {
 		// todo: refactor typings, cannot get it right atm
 		definitions.set(name, {

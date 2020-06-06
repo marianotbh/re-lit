@@ -1,10 +1,7 @@
 import { BindingContext } from "./context";
 import { batch } from "./batch";
-import { evaluate } from "./evaluate";
-import { apply } from "./apply";
 import { setContext, hasContext } from "./registry";
-import { shouldEvaluate } from "./handle";
-import { computed } from "../operators";
+import { parse } from "./parse";
 
 export async function bind(
 	node: Node,
@@ -20,10 +17,8 @@ export async function bind(
 	if (processed !== null) {
 		const shouldBreak = await Promise.all(
 			processed.map(([name, expression]) => {
-				const valueAccessor = computed(() =>
-					shouldEvaluate(name) ? evaluate(expression, context) : expression
-				);
-				return apply(name, node, valueAccessor, context);
+				const apply = parse(name, expression, context);
+				return apply !== null ? apply(node) : false;
 			})
 		);
 

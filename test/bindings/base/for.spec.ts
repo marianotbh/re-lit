@@ -1,5 +1,5 @@
 import { BindingContext, apply, bind } from "../../../src/bindings";
-import { defineComponent } from "../../../src/components";
+import { registerComponent } from "../../../src/components";
 import { observable } from "../../../src/operators";
 
 type Todo = {
@@ -8,7 +8,7 @@ type Todo = {
 	done: boolean;
 };
 
-defineComponent<{ todo: Todo }>("iterated-component", {
+registerComponent<{ todo: Todo }>("iterated-component", {
 	template: `<label><input type="checkbox" @change="toggle" />#{{id}} - {{text}}</label>`,
 	viewModel: ({ todo, ref }) => {
 		return {

@@ -1,5 +1,5 @@
 export {
-	defineComponent,
+	registerComponent,
 	createComponent,
 	isComponent,
 	ComponentDefinition,

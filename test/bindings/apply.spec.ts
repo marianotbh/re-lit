@@ -1,5 +1,5 @@
 import { apply, handle, BindingContext, bind } from "../../src/bindings";
-import { handlersFor } from "../../src/bindings/apply";
+import { handlersFor } from "../../src/bindings/handle";
 
 describe("handlersFor", () => {
 	it("should return an array of the applied handlers to a node", async () => {

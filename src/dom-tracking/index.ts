@@ -34,6 +34,18 @@ export function addDisposeCallback(node: Node, callback: DisposeCallback) {
 	}
 }
 
+export function registerEventListener(
+	node: Node,
+	eventName: string,
+	listener: EventListener,
+	options: boolean | EventListenerOptions = false
+) {
+	node.addEventListener(eventName, listener, options);
+	addDisposeCallback(node, () => {
+		node.removeEventListener(eventName, listener, options);
+	});
+}
+
 export function nodeHasData(node: Node): boolean {
 	return domData.has(node);
 }

@@ -6,7 +6,7 @@ handle<Function>("ref", {
 		const callback = unwrap(value);
 
 		if (typeof callback !== "function") {
-			throw new Error("Invalid value provided to :ref handler is not a valid callback");
+			throw new Error("ref value must be a valid callback function");
 		}
 
 		callback(node, context);

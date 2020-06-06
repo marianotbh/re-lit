@@ -7,11 +7,7 @@ describe("attr handler", () => {
 		const obj = { id: observable(1) };
 
 		// arrange
-		await apply(
-			"attr",
-			node,
-			computed(() => obj)
-		);
+		await apply("attr", node, () => obj);
 
 		// assert
 		expect(node.getAttribute("id")).toBe("1");

@@ -3,17 +3,17 @@ import { unwrap } from "../../operators";
 import { evaluate } from "../evaluate";
 import { createTemplate } from "../../components";
 import { bind } from "../bind";
-import { Operator } from "../../subscribables";
+import { isArrayOperator } from "../../subscribables";
 
 handle<string, HTMLElement>("for", {
 	controlsChildren: true,
-	preventsEvaluation: true,
+	evaluatesExpression: true,
 	onBind(value, node, context) {
 		const [prop, alias] = unwrap(value)
 			.split("as")
 			.map(s => s.trim());
 
-		const result = evaluate(prop, context);
+		const result = evaluate(prop, context)();
 		const iterable = unwrap(result);
 
 		if (Array.isArray(iterable)) {
@@ -23,10 +23,10 @@ handle<string, HTMLElement>("for", {
 				throw new Error(`cannot handle "for" on elements with more than 1 child`);
 			}
 
-			node.innerHTML = null;
+			node.innerHTML = "";
 			iterable.forEach(item => {
-				const el = template.firstElementChild.cloneNode(true);
-				const ctxt = context.createChild(item);
+				const el = template.firstElementChild!.cloneNode(true) as HTMLElement;
+				const ctxt = context.createChild(item, el);
 
 				if (typeof alias === "string" && alias.length) {
 					ctxt.set(alias, item);
@@ -36,13 +36,13 @@ handle<string, HTMLElement>("for", {
 				bind(el, ctxt);
 			});
 
-			if (result instanceof Operator) {
+			if (isArrayOperator<object>(result)) {
 				result
-					.subscribe((val: Array<any>) => {
-						node.innerHTML = null;
+					.subscribe(val => {
+						node.innerHTML = "";
 						val.forEach(item => {
-							const el = template.firstElementChild.cloneNode(true);
-							const ctxt = context.createChild(item);
+							const el = template.firstElementChild!.cloneNode(true) as HTMLElement;
+							const ctxt = context.createChild(item, el);
 
 							if (typeof alias === "string" && alias.length) {
 								ctxt.set(alias, item);

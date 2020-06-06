@@ -14,55 +14,46 @@ type ComponentBindingValue = {
 	alias: string | null;
 };
 
-function getSlot(node: HTMLElement): DocumentFragment | null {
-	if (node.innerHTML.trim().length) {
-		const slot = createTemplate(node.innerHTML);
-		node.innerHTML = null;
-		return slot;
-	} else {
-		return null;
-	}
-}
-
 handle<ComponentBindingValue>("component", {
 	controlsChildren: true,
 	onBind(value, node, context) {
 		if (node instanceof HTMLElement) {
-			const { name, params = <Params>{}, alias = null } = unwrap(value);
+			const { name, params = {}, alias = null } = unwrap(value);
 
 			if (isComponent(name)) {
-				const { template, viewModel } = createComponent(name);
+				const { template, viewModel } = createComponent(name)!;
 
-				const slot = getSlot(node);
-				params.slot = slot;
-				context.slot = slot;
+				let ref: HTMLElement, slot: DocumentFragment | null;
 
 				if (typeof alias === "string" && alias.length) {
-					const el = document.createElement(alias);
-					el.append(template.cloneNode(true));
-					node.parentElement.replaceChild(el, node);
-					setContext(el, context);
-					params.ref = el;
-					context.ref = el;
+					ref = document.createElement(alias);
+					node.parentElement!.replaceChild(ref, node);
+					setContext(ref, context);
 				} else {
-					node.append(template.cloneNode(true));
-					params.ref = node;
-					context.ref = node;
+					ref = node;
 				}
 
-				const vmInstance = viewModel(params);
+				if (node.innerHTML.trim().length) {
+					slot = createTemplate(node.innerHTML);
+					node.innerHTML = "";
+				} else {
+					slot = null;
+				}
 
-				const componentContext = context.createChild(vmInstance);
+				ref.append(template.cloneNode(true));
 
-				addDisposeCallback(context.ref, () => {
+				const vmInstance = viewModel({ ...params, ref, slot });
+				const componentContext = context.createChild(vmInstance, ref);
+
+				addDisposeCallback(ref, () => {
 					if (vmInstance instanceof ViewModel) {
-						vmInstance.onDispose();
+						vmInstance?.onDispose?.();
 					} else if (typeof vmInstance.dispose === "function") {
 						vmInstance.dispose();
 					}
 				});
 
-				bindChildren(context.ref, componentContext, true);
+				bindChildren(ref, componentContext, true);
 			} else {
 				console.warn(`"${name}" is not defined as a component, handler will be ignored`);
 			}
