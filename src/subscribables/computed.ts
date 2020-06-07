@@ -18,7 +18,7 @@ export class Computed<T = unknown> extends Operator<T> {
 		this.isDisposed = false;
 		this.dependencies = new Map();
 		this.evaluator = evaluator;
-		this.latestValue = null;
+		this.latestValue = (null as unknown) as T;
 	}
 
 	get value(): T {

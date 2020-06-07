@@ -2,12 +2,11 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"outDir": "build",
-		"lib": ["DOM", "DOM.Iterable"],
 		"strict": true,
 		"noImplicitAny": true,
 		"declaration": true,
 		"module": "commonjs",
-		"target": "es6",
+		"target": "es2019",
 		"sourceMap": true,
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,

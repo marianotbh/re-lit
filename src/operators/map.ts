@@ -13,11 +13,11 @@ export function map<TObject extends object = object>(target: TObject): Observabl
 	return <ObservableObject<TObject>>Object.fromEntries(
 		Object.entries(target).map(([key, value]) => {
 			if (typeof value === "function") {
-				return [key, value];
+				return [key, value] as const;
 			} else if (typeof value === "object") {
-				return [key, map(value)];
+				return [key, map(value)] as const;
 			} else {
-				return [key, observable(value)];
+				return [key, observable(value)] as const;
 			}
 		})
 	);

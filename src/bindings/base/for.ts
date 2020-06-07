@@ -3,17 +3,26 @@ import { unwrap } from "../../operators";
 import { evaluate } from "../evaluate";
 import { createTemplate } from "../../components";
 import { bind } from "../bind";
-import { isArrayOperator } from "../../subscribables";
+import { isArrayOperator, Operator } from "../../subscribables";
 
 handle<string, HTMLElement>("for", {
 	controlsChildren: true,
-	evaluatesExpression: true,
+	evaluatesExpression: false,
 	onBind(value, node, context) {
-		const [prop, alias] = unwrap(value)
-			.split("as")
-			.map(s => s.trim());
+		let result: Array<any> | Operator<Array<any>>,
+			alias: string | null = null;
 
-		const result = evaluate(prop, context)();
+		const expression = unwrap(value);
+		const match = expression.match(/\s?(.*)\sas\s(.*)\s?/);
+
+		if (match !== null) {
+			const [, prop, as] = Array.from(match);
+			result = evaluate(prop, context)();
+			alias = as;
+		} else {
+			result = evaluate(expression, context)();
+		}
+
 		const iterable = unwrap(result);
 
 		if (Array.isArray(iterable)) {

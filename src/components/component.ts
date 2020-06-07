@@ -44,14 +44,14 @@ export function isComponent(name: string): boolean {
 }
 
 export function createComponent(name: string): ComponentFactory | null {
+	if (factories.has(name)) {
+		return factories.get(name)!;
+	}
+
 	const component = definitions.get(name);
 
 	if (typeof component === "undefined") {
 		return null;
-	}
-
-	if (factories.has(name)) {
-		return factories.get(name);
 	}
 
 	const { template, viewModel } = component;

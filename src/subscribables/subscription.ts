@@ -3,7 +3,7 @@ import { addDisposeCallback } from "../dom-tracking";
 
 export class Subscription<T = unknown> extends Disposable {
 	private onUpdate: Function;
-	private onDispose: Function;
+	private onDispose: Function | undefined;
 	public isDisposed: boolean;
 
 	constructor(onUpdate: (val: T) => void, onDispose?: () => void) {

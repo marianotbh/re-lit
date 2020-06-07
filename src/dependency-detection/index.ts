@@ -1,11 +1,11 @@
 import { Subscribable, Computed } from "../subscribables";
 
-type CurrentFrame = Computed | null;
+type CurrentFrame<T = unknown> = Computed<T> | null;
 
 let current: CurrentFrame = null;
 const frames: Array<Computed> = [];
 
-export function activate(subscribable: Computed): void {
+export function activate<T = unknown>(subscribable: Computed<T>): void {
 	if (current !== null) {
 		frames.push(current);
 	}

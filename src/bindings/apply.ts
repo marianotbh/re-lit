@@ -7,7 +7,7 @@ export async function apply(
 	handlerName: string,
 	node: Node,
 	accessor: (() => any) | null,
-	context: BindingContext = new BindingContext({})
+	context: BindingContext
 ) {
 	const handler = getHandler(handlerName);
 
