@@ -1,4 +1,4 @@
-import $, { observable } from "../../src";
+import $, { observable, computed } from "../../src";
 
 describe("pesos", () => {
 	it("should create the give Template on the passed dom node", () => {
@@ -26,7 +26,7 @@ describe("pesos", () => {
 		expect(el.textContent).toMatch(/hello, world/g);
 	});
 
-	it("should correctly display conditional renderings", () => {
+	it("should correctly display and update conditional renderings", () => {
 		const conditional = observable(true);
 		const el = $`<div>${() => (conditional.value ? $`true!!` : $`false!!`)}</div>`.render();
 
@@ -35,5 +35,43 @@ describe("pesos", () => {
 		conditional.value = false;
 
 		expect(el.textContent).toMatch(/false!!/g);
+	});
+
+	it("should correctly render attributes", () => {
+		const el = $`<div ${{ id: "test", class: "testable" }}></div>`.render();
+
+		expect(el.firstElementChild!.getAttribute("id")).toEqual("test");
+		expect(el.firstElementChild!.getAttribute("class")).toEqual("testable");
+	});
+
+	it("should correctly render attributes", () => {
+		const id = observable("test");
+		const classes = computed(() => id.value + "able");
+
+		const el = $`<div ${{ id, class: classes }}></div>`.render();
+
+		expect(el.firstElementChild!.getAttribute("id")).toEqual("test");
+		expect(el.firstElementChild!.getAttribute("class")).toEqual("testable");
+
+		id.value = "changed";
+
+		expect(el.firstElementChild!.getAttribute("id")).toEqual("changed");
+		expect(el.firstElementChild!.getAttribute("class")).toEqual("changedable");
+	});
+
+	it("should correctly render attributes", () => {
+		const options = observable([
+			{ text: "one", value: 1 },
+			{ text: "two", value: 2 },
+			{ text: "three", value: 3 }
+		]);
+
+		const el = $`
+			<select>
+				<option>pick one</option>
+				${() => options.value.map(({ value, text }) => $`<option ${{ value }}>${text}</option>`)}
+			</select>`.render();
+
+		expect(el.firstElementChild!.childElementCount).toBe(4);
 	});
 });

@@ -13,6 +13,15 @@ export abstract class Subscribable<T = unknown> {
 		return sub;
 	}
 
+	subscribeOnce(callback: (update: T) => void): Subscription<T> {
+		const sub = new Subscription<T>(val => {
+			callback(val);
+			sub.dispose();
+		});
+		this.subs.add(sub);
+		return sub;
+	}
+
 	protected publish(value: T): void {
 		this.subs.forEach(sub => {
 			if (!sub.isDisposed) {

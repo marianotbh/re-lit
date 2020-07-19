@@ -7,7 +7,7 @@ export function trackDOM(root: Node) {
 		throw new Error("this library needs to run on a browser that supports mutation observer");
 	}
 
-	const observer = new MutationObserver(function (mutations) {
+	const observer = new MutationObserver(mutations => {
 		mutations
 			.filter(mutation => mutation.type === "childList")
 			.forEach(({ removedNodes }) => {

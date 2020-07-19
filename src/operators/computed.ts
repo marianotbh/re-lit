@@ -31,10 +31,10 @@ export class Computed<T = unknown> extends Operator<T> {
 
 			if (typeof result === "object" && result !== null) {
 				if (result instanceof Operator) {
-					this.notice(result);
+					this.sync(result);
 				} else {
 					absorb(result as any).forEach(dep => {
-						this.notice(dep);
+						this.sync(dep);
 					});
 				}
 			}
@@ -53,7 +53,7 @@ export class Computed<T = unknown> extends Operator<T> {
 		this.publish(this.value);
 	}
 
-	notice(subable: Subscribable) {
+	sync(subable: Subscribable) {
 		if (!this.deps.has(subable)) {
 			this.deps.set(
 				subable,

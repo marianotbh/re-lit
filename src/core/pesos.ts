@@ -1,8 +1,9 @@
 import { isOperator, Operator } from "../operators/operator";
 import { Subscription } from "../operators/subscription";
 import { addDisposeCallback } from "../dom-tracking";
-import { computed, observable } from "../operators";
+import { computed, observable, snap } from "../operators";
 import { event, text, attr } from "../directives";
+import { Computed } from "../operators/computed";
 
 const TEMPLATE_TOKEN = "__TEMPLATE_TOKEN_";
 
@@ -19,7 +20,7 @@ export class Template {
 	private templateStringsArray: TemplateStringsArray;
 	private args: any[];
 	private parts: Map<string, any>;
-	private deps: Set<Subscription>;
+	private deps: Set<Subscription | Computed>;
 
 	constructor(templateStringsArray: TemplateStringsArray, ...args: Array<unknown>) {
 		this.templateStringsArray = templateStringsArray;
@@ -81,17 +82,30 @@ export class Template {
 		const attrs = Array.from(node.attributes);
 
 		attrs.forEach(a => {
-			if (a.name.startsWith("@") && isToken(a.value)) {
+			if (a.name.startsWith("on") && isToken(a.value)) {
 				const token = a.value;
-				const name = a.name.substr(1);
+				const name = a.name.substr(2);
 				const value = this.getPart<() => void>(token);
 				event(node)(name, value);
 				a.ownerElement!.removeAttribute(a.name);
 			} else if (isToken(a.name)) {
-				const token = a.name;
+				const token = a.name.toUpperCase();
 				const value = this.getPart<{}>(token);
-				attr(node)(value);
-				a.ownerElement!.removeAttribute(a.name);
+
+				if (typeof value === "object") {
+					const apply = attr(node);
+					const ref = computed(() => snap(value));
+					const sub = ref.subscribe(v => apply(v));
+					ref.update();
+					this.deps.add(sub);
+					this.deps.add(ref);
+					a.ownerElement!.removeAttribute(a.name);
+				} else if (typeof value === "function") {
+					value(node);
+					a.ownerElement!.removeAttribute(a.name);
+				} else {
+					throw new Error("invalid attribute directive");
+				}
 			}
 		});
 	}
@@ -146,12 +160,21 @@ export class Template {
 								}
 
 								open.parentNode!.insertBefore(template, close);
+							} else if (Array.isArray(v)) {
+								while (open.nextSibling !== close) {
+									open.nextSibling?.remove();
+								}
+
+								v.map(t => t.render()).forEach(t => {
+									open.parentNode!.insertBefore(t, close);
+								});
 							}
 						});
 
 						ref.update();
 
 						this.deps.add(sub);
+						this.deps.add(ref);
 					}
 
 					// evaluates text

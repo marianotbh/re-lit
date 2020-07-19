@@ -1,4 +1,4 @@
-export { attr, event, suspense, text } from "./directives";
+export * from "./directives";
 
 export {
 	observable,

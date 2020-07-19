@@ -24,6 +24,6 @@ export function sleep(): void {
 
 export function touch(subscribable: Subscribable): void {
 	if (current !== null) {
-		current.notice(subscribable);
+		current.sync(subscribable);
 	}
 }
