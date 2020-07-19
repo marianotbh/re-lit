@@ -1,11 +1,12 @@
-import { Subscribable, Computed } from "../subscribables";
+import { Subscribable } from "../operators/subscribable";
+import { Computed } from "../operators/computed";
 
 type CurrentFrame<T = unknown> = Computed<T> | null;
 
 let current: CurrentFrame = null;
 const frames: Array<Computed> = [];
 
-export function activate<T = unknown>(subscribable: Computed<T>): void {
+export function wake<T = unknown>(subscribable: Computed<T>): void {
 	if (current !== null) {
 		frames.push(current);
 	}
@@ -21,8 +22,8 @@ export function sleep(): void {
 	}
 }
 
-export function capture(subscribable: Subscribable): void {
+export function touch(subscribable: Subscribable): void {
 	if (current !== null) {
-		current.attach(subscribable);
+		current.notice(subscribable);
 	}
 }

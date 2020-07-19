@@ -1,5 +1,5 @@
 import { Resolver, ResolverType, PossibleResolver } from "./resolver";
-import { Observable } from "../subscribables";
+import { Observable } from "../operators/observable";
 
 function sanitize(path: string) {
 	if (path.startsWith("/")) path = path.substr(1);

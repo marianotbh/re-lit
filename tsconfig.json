@@ -10,7 +10,12 @@
 		"sourceMap": true,
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
-		"types": ["node", "jest"]
+		"types": ["node", "jest"],
+		"paths": {
+			"@core": ["src/core"],
+			"@directives": ["src/directives"],
+			"@operators": ["src/operators"]
+		}
 	},
 	"include": ["src/**/*", "test/**/*"],
 	"exclude": ["node_modules", "**/*.spec.ts"]

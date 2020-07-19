@@ -1,5 +1,4 @@
-import { Observable } from "../subscribables";
-import { observable } from "./observable";
+import { observable, Observable } from "../operators/observable";
 
 export type ObservableObject<TObject extends object = object> = {
 	[key in keyof TObject]: TObject[key] extends Function
