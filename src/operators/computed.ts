@@ -50,7 +50,7 @@ export class Computed<T = unknown> extends Operator<T> {
 	}
 
 	update(): void {
-		this.publish(this.latestValue);
+		this.publish(this.value);
 	}
 
 	notice(subable: Subscribable) {
