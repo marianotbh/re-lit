@@ -1,25 +1,27 @@
-import { computed, observable } from "../../src/operators";
+import { computed, observable, isComputed } from "../../src/operators";
 
-test("computed should return instance of Computed", () => {
-	const subscribable = computed(() => true);
-
-	expect(typeof subscribable.value).toBe("boolean");
+test("isComputed", () => {
+	expect(isComputed(1)).toBe(false);
+	expect(isComputed("not computed")).toBe(false);
+	expect(isComputed(true)).toBe(false);
+	expect(isComputed(false)).toBe(false);
+	expect(isComputed(null)).toBe(false);
+	expect(isComputed(undefined)).toBe(false);
+	expect(isComputed(NaN)).toBe(false);
+	expect(isComputed(computed(() => {}))).toBe(true);
 });
 
 test("computed value should be the result of evaluator fn", () => {
-	const someValue = "asdf";
-	const evaluator = () => `testing ${someValue}`;
-	const result = evaluator();
-	const computedValue = computed(evaluator);
+	const someValue = "computed";
+	const computedValue = computed(() => `testing ${someValue}`);
 
-	expect(computedValue.value).toEqual(result);
+	expect(computedValue.value).toEqual("testing computed");
 });
 
 test("computed value should update according to its dependencies", () => {
 	const someVal = observable(1);
 	const someOtherVal = observable(1);
-	const evaluator = () => someVal.value + someOtherVal.value;
-	const computedValue = computed(evaluator);
+	const computedValue = computed(() => someVal.value + someOtherVal.value);
 
 	someVal.value = 2;
 

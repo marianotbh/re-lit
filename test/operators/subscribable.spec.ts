@@ -25,3 +25,19 @@ test("subscribable", () => {
 
 	expect(counter).toBe(3);
 });
+
+test("subscribable", () => {
+	const dummy = new DummyClass<number>();
+
+	let counter = 0;
+
+	// subscribe is triggered each time publish is called
+	dummy.subscribeOnce(val => (counter += val));
+
+	// internally publishes the value 1
+	dummy.next(1);
+	dummy.next(1);
+	dummy.next(1);
+
+	expect(counter).toBe(1);
+});
