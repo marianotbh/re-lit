@@ -1,6 +1,6 @@
 import { Subscribable } from "./subscribable";
 import { Subscription } from "./subscription";
-import { wake, sleep } from "../dependency-detection";
+import { wake, sleep, touch } from "../dependency-detection";
 import { Operator } from "./operator";
 
 type EvaluatorFn<T = unknown> = () => T;
@@ -27,25 +27,14 @@ export class Computed<T = unknown> extends Operator<T> {
 
 			wake(this);
 
-			const result = this.evaluator();
-
-			if (typeof result === "object" && result !== null) {
-				if (result instanceof Operator) {
-					this.sync(result);
-				} else {
-					absorb(result as any).forEach(dep => {
-						this.sync(dep);
-					});
-				}
-			}
+			this.latestValue = this.evaluator();
 
 			sleep();
-
-			this.latestValue = result;
 		} else {
 			this.latestValue = this.evaluator();
 		}
 
+		touch(this);
 		return this.latestValue;
 	}
 

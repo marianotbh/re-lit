@@ -1,4 +1,4 @@
-import $, { observable, computed } from "../../src";
+import $, { observable, computed, ref } from "../../src";
 
 describe("pesos", () => {
 	it("should create the give Template on the passed dom node", () => {
@@ -57,6 +57,26 @@ describe("pesos", () => {
 
 		expect(el.firstElementChild!.getAttribute("id")).toEqual("changed");
 		expect(el.firstElementChild!.getAttribute("class")).toEqual("changedable");
+	});
+
+	it("weniweni", () => {
+		const isLoading = observable(false);
+		const classes = computed(() => "select" + (isLoading.value ? " is-loading" : ""));
+		const button = observable<HTMLButtonElement | null>(null);
+
+		function toggle() {
+			debugger;
+			isLoading.value = !isLoading.value;
+		}
+
+		const test = $`
+			<div ${{ class: classes }}></div>
+			<button ${ref(button)} onclick=${toggle}>toggle</button>
+		`.render();
+
+		button.value!.click();
+
+		expect(test.firstElementChild!.getAttribute("class")).toBe("select is-loading");
 	});
 
 	it("should correctly render attributes", () => {
