@@ -29,7 +29,7 @@ export class Template {
 		this.deps = new Set();
 	}
 
-	render() {
+	async render() {
 		if (this.args.length + 1 !== this.templateStringsArray.length)
 			throw new Error("unbalanced template");
 
@@ -48,7 +48,8 @@ export class Template {
 
 		const node = document.importNode(template.content, true);
 
-		this.processContent(node);
+		const children = Array.from(node.children);
+		await Promise.all(children.map(child => this.processNode(child)));
 
 		if (this.deps.size > 0) {
 			addDisposeCallback(node, () => {
@@ -61,24 +62,17 @@ export class Template {
 		return node;
 	}
 
-	private processContent(content: DocumentFragment) {
-		const children = Array.from(content.children);
-		children.forEach(child => {
-			this.processNode(child);
-		});
-	}
-
-	private processNode(node: Node) {
+	private async processNode(node: Node) {
 		if (node instanceof HTMLElement) {
-			this.processHTMLElement(node);
+			await this.processHTMLElement(node);
 		} else if (node instanceof Text) {
-			this.processText(node);
+			await this.processText(node);
 		}
 
-		node.childNodes.forEach(child => this.processNode(child));
+		await Promise.all(Array.from(node.childNodes).map(child => this.processNode(child)));
 	}
 
-	private processHTMLElement(node: HTMLElement) {
+	private async processHTMLElement(node: HTMLElement) {
 		const attrs = Array.from(node.attributes);
 
 		attrs.forEach(a => {
@@ -110,18 +104,14 @@ export class Template {
 		});
 	}
 
-	private getPart<T = unknown>(key: string): T {
-		return this.parts.get(key) as T;
-	}
-
-	private processText(node: Text) {
+	private async processText(node: Text) {
 		if (node.textContent && node.textContent.includes(TEMPLATE_TOKEN)) {
 			const matches = node.textContent!.match(/__TEMPLATE_TOKEN_([a-z0-9-]*)__/g);
 
 			if (matches != null) {
 				let remainder = node;
 
-				matches.forEach(token => {
+				matches.forEach(async token => {
 					const newNode = remainder.splitText(remainder.textContent!.indexOf(token));
 					remainder = newNode.splitText(newNode.textContent!.indexOf(token) + token.length);
 
@@ -135,8 +125,8 @@ export class Template {
 
 					// evaluates passed template objects
 					if (part instanceof Template) {
-						const template = part.render();
-						newNode.parentNode!.replaceChild(template, newNode);
+						const template = await part.render();
+						newNode.replaceWith(template);
 					}
 
 					// evaluates functions
@@ -147,13 +137,13 @@ export class Template {
 
 						const ref = computed(part);
 
-						const sub = ref.subscribe(v => {
+						const sub = ref.subscribe(async v => {
 							if (v === null) {
 								while (open.nextSibling !== close) {
 									open.nextSibling?.remove();
 								}
 							} else if (v instanceof Template) {
-								const template = v.render();
+								const template = await v.render();
 
 								while (open.nextSibling !== close) {
 									open.nextSibling?.remove();
@@ -165,8 +155,8 @@ export class Template {
 									open.nextSibling?.remove();
 								}
 
-								v.map(t => t.render()).forEach(t => {
-									open.parentNode!.insertBefore(t, close);
+								v.map(t => t.render()).forEach(async t => {
+									open.parentNode!.insertBefore(await t, close);
 								});
 							}
 						});
@@ -192,5 +182,9 @@ export class Template {
 				});
 			}
 		}
+	}
+
+	private getPart<T = unknown>(key: string): T {
+		return this.parts.get(key) as T;
 	}
 }

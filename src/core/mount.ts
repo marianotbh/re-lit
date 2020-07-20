@@ -1,14 +1,20 @@
 import { trackDOM } from "../dom-tracking";
 import { Template } from "./pesos";
 
-export async function mount(root: HTMLElement, template: Template) {
-	while (root.firstChild) {
-		root.removeChild(root.firstChild);
-	}
+export function mount(thing: Template | (() => Template)) {
+	const template = typeof thing === "function" ? thing() : thing;
 
-	trackDOM(root);
+	return {
+		on: async (root: HTMLElement) => {
+			while (root.firstChild) {
+				root.removeChild(root.firstChild);
+			}
 
-	const result = template.render();
+			trackDOM(root);
 
-	root.append(result);
+			const result = await template.render();
+
+			root.append(result);
+		}
+	};
 }
