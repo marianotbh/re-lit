@@ -5,8 +5,6 @@ import { computed, observable, snap } from "../operators";
 import { event, text, attr } from "../directives";
 import { Computed } from "../operators/computed";
 
-const TEMPLATE_TOKEN = "__TEMPLATE_TOKEN_";
-
 const isToken = (str: string) => /__TEMPLATE_TOKEN_([0-9]*)__/.test(str.toUpperCase());
 
 export default function (
@@ -30,9 +28,6 @@ export class Template {
 	}
 
 	async render() {
-		if (this.args.length + 1 !== this.templateStringsArray.length)
-			throw new Error("unbalanced template");
-
 		const innerHTML =
 			this.args.length > 0
 				? this.args.reduce((str, arg, idx) => {
@@ -105,82 +100,80 @@ export class Template {
 	}
 
 	private async processText(node: Text) {
-		if (node.textContent && node.textContent.includes(TEMPLATE_TOKEN)) {
-			const matches = node.textContent!.match(/__TEMPLATE_TOKEN_([a-z0-9-]*)__/g);
+		const matches = node.textContent!.match(/__TEMPLATE_TOKEN_([a-z0-9-]*)__/g);
 
-			if (matches != null) {
-				let remainder = node;
+		if (matches != null) {
+			let remainder = node;
 
-				matches.forEach(async token => {
-					const newNode = remainder.splitText(remainder.textContent!.indexOf(token));
-					remainder = newNode.splitText(newNode.textContent!.indexOf(token) + token.length);
+			matches.forEach(async token => {
+				const newNode = remainder.splitText(remainder.textContent!.indexOf(token));
+				remainder = newNode.splitText(newNode.textContent!.indexOf(token) + token.length);
 
-					const part = this.getPart<
-						| string
-						| number
-						| Operator<string | number>
-						| (() => Template | null | Array<Template>)
-						| Template
-					>(token);
+				const part = this.getPart<
+					| string
+					| number
+					| Operator<string | number>
+					| (() => Template | null | Array<Template>)
+					| Template
+				>(token);
 
-					// evaluates passed template objects
-					if (part instanceof Template) {
-						const template = await part.render();
-						newNode.replaceWith(template);
-					}
+				// evaluates passed template objects
+				if (part instanceof Template) {
+					const template = await part.render();
+					newNode.replaceWith(template);
+				}
 
-					// evaluates functions
-					else if (typeof part === "function") {
-						const open = document.createComment("");
-						const close = document.createComment("");
-						newNode.replaceWith(open, close);
+				// evaluates functions
+				else if (typeof part === "function") {
+					const open = document.createComment("");
+					const close = document.createComment("");
+					newNode.replaceWith(open, close);
 
-						const ref = computed(part);
+					const ref = computed(part);
 
-						const sub = ref.subscribe(async v => {
-							if (v === null) {
-								while (open.nextSibling !== close) {
-									open.nextSibling?.remove();
-								}
-							} else if (v instanceof Template) {
-								const template = await v.render();
-
-								while (open.nextSibling !== close) {
-									open.nextSibling?.remove();
-								}
-
-								open.parentNode!.insertBefore(template, close);
-							} else if (Array.isArray(v)) {
-								while (open.nextSibling !== close) {
-									open.nextSibling?.remove();
-								}
-
-								v.map(t => t.render()).forEach(async t => {
-									open.parentNode!.insertBefore(await t, close);
-								});
+					const sub = ref.subscribe(async v => {
+						if (v === null) {
+							while (open.nextSibling !== close) {
+								open.nextSibling?.remove();
 							}
-						});
+						} else if (v instanceof Template) {
+							const template = await v.render();
 
-						ref.update();
+							while (open.nextSibling !== close) {
+								open.nextSibling?.remove();
+							}
 
-						this.deps.add(sub);
-						this.deps.add(ref);
-					}
+							open.parentNode!.insertBefore(template, close);
+						} else if (Array.isArray(v)) {
+							while (open.nextSibling !== close) {
+								open.nextSibling?.remove();
+							}
 
-					// evaluates text
-					else {
-						const apply = text(newNode);
-
-						if (isOperator(part)) {
-							const sub = part.subscribe(v => apply(v));
-							apply(part.value);
-							this.deps.add(sub);
-						} else {
-							apply(part);
+							v.map(t => t.render()).forEach(async t => {
+								open.parentNode!.insertBefore(await t, close);
+							});
 						}
+					});
+
+					ref.update();
+
+					this.deps.add(sub);
+					this.deps.add(ref);
+				}
+
+				// evaluates text
+				else {
+					const apply = text(newNode);
+
+					if (isOperator(part)) {
+						const sub = part.subscribe(v => apply(v));
+						apply(part.value);
+						this.deps.add(sub);
+					} else {
+						apply(part);
 					}
-				});
-			}
+				}
+			});
 		}
 	}
 
