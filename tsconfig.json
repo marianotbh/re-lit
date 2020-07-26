@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"outDir": "build",
+		"lib": ["DOM", "DOM.Iterable", "es2020"],
 		"strict": true,
 		"noImplicitAny": true,
 		"declaration": true,

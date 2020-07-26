@@ -21,6 +21,9 @@ export class Observable<T = unknown> extends Operator<T> {
 		}
 	}
 
+	/**
+	 * reads the observable's latest value without triggering any dependency detection features
+	 */
 	peek(): T {
 		return this.latestValue;
 	}
@@ -29,6 +32,8 @@ export class Observable<T = unknown> extends Operator<T> {
 export const observable = <T = unknown>(initialValue: T) => {
 	return new Observable(initialValue);
 };
+
+export const of = observable;
 
 export const isObservable = (value: any): value is Observable => {
 	return value instanceof Observable;

@@ -1,4 +1,4 @@
-export { observable, isObservable } from "./observable";
+export { observable, of, isObservable } from "./observable";
 export { computed, isComputed } from "./computed";
 export { unwrap } from "./unwrap";
 export { map } from "./map";

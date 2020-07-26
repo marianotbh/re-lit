@@ -32,7 +32,7 @@ test("subscribable", () => {
 	let counter = 0;
 
 	// subscribe is triggered each time publish is called
-	dummy.subscribeOnce(val => (counter += val));
+	dummy.once(val => (counter += val));
 
 	// internally publishes the value 1
 	dummy.next(1);

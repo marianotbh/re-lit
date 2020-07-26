@@ -13,7 +13,7 @@ export abstract class Subscribable<T = unknown> {
 		return sub;
 	}
 
-	subscribeOnce(callback: (update: T) => void): Subscription<T> {
+	once(callback: (update: T) => void): Subscription<T> {
 		const sub = new Subscription<T>(val => {
 			callback(val);
 			sub.dispose();

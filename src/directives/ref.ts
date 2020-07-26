@@ -1,7 +1,7 @@
 import { Observable } from "../operators/observable";
 
-export function ref(observable: Observable) {
-	return function (el: Element) {
+export function ref<T extends Node = Node>(observable: Observable<T | null>) {
+	return function (el: T) {
 		observable.value = el;
 	};
 }

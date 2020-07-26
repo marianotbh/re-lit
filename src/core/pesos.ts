@@ -2,124 +2,139 @@ import { isOperator, Operator } from "../operators/operator";
 import { Subscription } from "../operators/subscription";
 import { addDisposeCallback } from "../dom-tracking";
 import { computed, observable, snap } from "../operators";
-import { event, text, attr } from "../directives";
+import { event as addEvent, text as setText, attr as setAttr } from "../directives";
 import { Computed } from "../operators/computed";
 
-const isToken = (str: string) => /__TEMPLATE_TOKEN_([0-9]*)__/.test(str.toUpperCase());
+const isToken = (str: string) => /{{([0-9]*)}}/.test(str.toUpperCase());
+
+type PossibleValue =
+	| string
+	| number
+	| object
+	| ((ev: Event) => void)
+	| ((el: Element) => void)
+	| Operator<string | number>
+	| (() => Template | null | Array<Template>)
+	| Template;
 
 export default function (
 	templateStringsArray: TemplateStringsArray,
-	...args: Array<unknown>
+	...args: Array<PossibleValue>
 ): Template {
 	return new Template(templateStringsArray, ...args);
 }
 
+function createTemplateFromString(innerHTML: string) {
+	const template = document.createElement("template");
+	template.innerHTML = innerHTML;
+	return document.importNode(template.content, true);
+}
+
 export class Template {
 	private templateStringsArray: TemplateStringsArray;
-	private args: any[];
-	private parts: Map<string, any>;
+	private args: Array<PossibleValue>;
+	private parts: Map<number, PossibleValue>;
 	private deps: Set<Subscription | Computed>;
 
-	constructor(templateStringsArray: TemplateStringsArray, ...args: Array<unknown>) {
+	constructor(templateStringsArray: TemplateStringsArray, ...args: Array<PossibleValue>) {
 		this.templateStringsArray = templateStringsArray;
 		this.args = args;
 		this.parts = new Map();
 		this.deps = new Set();
 	}
 
-	async render() {
-		const innerHTML =
-			this.args.length > 0
-				? this.args.reduce((str, arg, idx) => {
-						const token = `__TEMPLATE_TOKEN_${idx}__`;
-						this.parts.set(token, arg);
-						str += `${token}${this.templateStringsArray[idx + 1]}`;
-						return str;
-				  }, this.templateStringsArray[0])
-				: this.templateStringsArray.join("");
+	render() {
+		let template: DocumentFragment;
 
-		const template = document.createElement("template");
-		template.innerHTML = innerHTML;
+		if (this.args.length > 0) {
+			const innerHTML = this.args.reduce((str: string, arg, idx) => {
+				this.parts.set(idx, arg);
+				return (str += `{{${idx}}}${this.templateStringsArray[idx + 1]}`);
+			}, this.templateStringsArray[0]);
+			template = createTemplateFromString(innerHTML);
+		} else {
+			const innerHTML = this.templateStringsArray.join("");
+			template = createTemplateFromString(innerHTML);
+		}
 
-		const node = document.importNode(template.content, true);
-
-		const children = Array.from(node.children);
-		await Promise.all(children.map(child => this.processNode(child)));
+		Array.from(template.childNodes).map(child => this.processNode(child));
 
 		if (this.deps.size > 0) {
-			addDisposeCallback(node, () => {
+			addDisposeCallback(template, () => {
 				this.deps.forEach(dep => {
 					dep.dispose();
 				});
 			});
 		}
 
-		return node;
+		return template;
 	}
 
-	private async processNode(node: Node) {
+	private processNode(node: Node) {
 		if (node instanceof HTMLElement) {
-			await this.processHTMLElement(node);
+			this.processHTMLElement(node);
+			// recursively process node's child nodes
+			Array.from(node.childNodes).map(child => this.processNode(child));
 		} else if (node instanceof Text) {
-			await this.processText(node);
+			this.processText(node);
 		}
-
-		await Promise.all(Array.from(node.childNodes).map(child => this.processNode(child)));
 	}
 
-	private async processHTMLElement(node: HTMLElement) {
-		const attrs = Array.from(node.attributes);
+	private processHTMLElement(node: HTMLElement) {
+		const attributes = Array.from(node.attributes);
 
-		attrs.forEach(a => {
-			if (a.name.startsWith("on") && isToken(a.value)) {
-				const token = a.value;
-				const name = a.name.substr(2);
-				const value = this.getPart<() => void>(token);
-				event(node)(name, value);
-				a.ownerElement!.removeAttribute(a.name);
-			} else if (isToken(a.name)) {
-				const token = a.name.toUpperCase();
-				const value = this.getPart<{}>(token);
+		attributes.forEach(attr => {
+			// evaluates <div ${{ id: '123' }} ></div> like attributes
+			if (isToken(attr.name)) {
+				const token = attr.name.toUpperCase();
+				const value = this.getPart(token.replace("{{", "").replace("}}", ""));
 
 				if (typeof value === "object") {
-					const apply = attr(node);
-					const ref = computed(() => snap(value));
+					const apply = setAttr(node);
+					const ref = computed(() => snap(value as Record<string, string | null>));
 					const sub = ref.subscribe(v => apply(v));
-					ref.update();
+					ref.force();
 					this.deps.add(sub);
 					this.deps.add(ref);
-					a.ownerElement!.removeAttribute(a.name);
+					attr.ownerElement!.removeAttribute(attr.name);
 				} else if (typeof value === "function") {
-					value(node);
-					a.ownerElement!.removeAttribute(a.name);
+					(value as (el: Element) => void)(node);
+					attr.ownerElement!.removeAttribute(attr.name);
 				} else {
-					throw new Error("invalid attribute directive");
+					throw new Error("invalid attribute object");
+				}
+			} else {
+				if (attr.name.startsWith("on") && isToken(attr.value)) {
+					const token = attr.value;
+					const name = attr.name.substr(2);
+					const value = this.getPart(token.replace("{{", "").replace("}}", ""));
+
+					if (typeof value === "function") {
+						addEvent(node)(name, value as (ev: Event) => void);
+						attr.ownerElement!.removeAttribute(attr.name);
+					} else {
+						throw Error("invalid event listener");
+					}
 				}
 			}
 		});
 	}
 
-	private async processText(node: Text) {
-		const matches = node.textContent!.match(/__TEMPLATE_TOKEN_([a-z0-9-]*)__/g);
+	private processText(node: Text) {
+		const matches = node.textContent!.matchAll(/{{([0-9]*)}}/g);
 
-		if (matches != null) {
+		if (matches !== null) {
 			let remainder = node;
 
-			matches.forEach(async token => {
+			Array.from(matches).forEach(([token, value]) => {
 				const newNode = remainder.splitText(remainder.textContent!.indexOf(token));
 				remainder = newNode.splitText(newNode.textContent!.indexOf(token) + token.length);
 
-				const part = this.getPart<
-					| string
-					| number
-					| Operator<string | number>
-					| (() => Template | null | Array<Template>)
-					| Template
-				>(token);
+				const part = this.getPart(value);
 
 				// evaluates passed template objects
 				if (part instanceof Template) {
-					const template = await part.render();
+					const template = part.render();
 					newNode.replaceWith(template);
 				}
 
@@ -127,9 +142,10 @@ export class Template {
 				else if (typeof part === "function") {
 					const open = document.createComment("");
 					const close = document.createComment("");
+
 					newNode.replaceWith(open, close);
 
-					const ref = computed(part);
+					const ref = computed(part as () => Template | Array<Template> | null);
 
 					const sub = ref.subscribe(async v => {
 						if (v === null) {
@@ -137,7 +153,7 @@ export class Template {
 								open.nextSibling?.remove();
 							}
 						} else if (v instanceof Template) {
-							const template = await v.render();
+							const template = v.render();
 
 							while (open.nextSibling !== close) {
 								open.nextSibling?.remove();
@@ -149,13 +165,13 @@ export class Template {
 								open.nextSibling?.remove();
 							}
 
-							v.map(t => t.render()).forEach(async t => {
-								open.parentNode!.insertBefore(await t, close);
+							v.forEach(t => {
+								open.parentNode!.insertBefore(t.render(), close);
 							});
 						}
 					});
 
-					ref.update();
+					ref.force();
 
 					this.deps.add(sub);
 					this.deps.add(ref);
@@ -163,7 +179,7 @@ export class Template {
 
 				// evaluates text
 				else {
-					const apply = text(newNode);
+					const apply = setText(newNode);
 
 					if (isOperator(part)) {
 						const sub = part.subscribe(v => apply(v));
@@ -177,7 +193,7 @@ export class Template {
 		}
 	}
 
-	private getPart<T = unknown>(key: string): T {
-		return this.parts.get(key) as T;
+	private getPart(key: string | number) {
+		return this.parts.get(Number(key)) as PossibleValue;
 	}
 }

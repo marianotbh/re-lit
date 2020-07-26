@@ -2,6 +2,7 @@ export * from "./directives";
 
 export {
 	observable,
+	of,
 	computed,
 	unwrap,
 	isComputed,
