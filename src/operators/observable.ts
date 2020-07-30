@@ -27,6 +27,12 @@ export class Observable<T = unknown> extends Operator<T> {
 	peek(): T {
 		return this.latestValue;
 	}
+
+	update(updater: (val: T) => T) {
+		if (typeof updater === "function") {
+			this.value = updater(this.latestValue);
+		}
+	}
 }
 
 export const observable = <T = unknown>(initialValue: T) => {

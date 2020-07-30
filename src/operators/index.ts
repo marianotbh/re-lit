@@ -4,3 +4,4 @@ export { unwrap } from "./unwrap";
 export { map } from "./map";
 export { snap } from "./snap";
 export { pipe } from "./pipe";
+export { lazy } from "./lazy";

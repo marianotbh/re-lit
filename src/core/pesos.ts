@@ -57,7 +57,7 @@ export class Template {
 			template = createTemplateFromString(innerHTML);
 		}
 
-		Array.from(template.childNodes).map(child => this.processNode(child));
+		Array.from(template.childNodes).forEach(child => this.processNode(child));
 
 		if (this.deps.size > 0) {
 			addDisposeCallback(template, () => {
@@ -104,16 +104,26 @@ export class Template {
 					throw new Error("invalid attribute object");
 				}
 			} else {
-				if (attr.name.startsWith("on") && isToken(attr.value)) {
-					const token = attr.value;
-					const name = attr.name.substr(2);
-					const value = this.getPart(token.replace("{{", "").replace("}}", ""));
+				if (isToken(attr.value)) {
+					if (attr.name.startsWith("on")) {
+						const token = attr.value;
+						const name = attr.name.substr(2);
+						const value = this.getPart(token.replace("{{", "").replace("}}", ""));
 
-					if (typeof value === "function") {
-						addEvent(node)(name, value as (ev: Event) => void);
-						attr.ownerElement!.removeAttribute(attr.name);
+						if (typeof value === "function") {
+							addEvent(node)(name, value as (ev: Event) => void);
+							attr.ownerElement!.removeAttribute(attr.name);
+						} else {
+							throw Error("invalid event listener");
+						}
 					} else {
-						throw Error("invalid event listener");
+						const { name, value: token } = attr;
+						const value = this.getPart(token.replace("{{", "").replace("}}", ""));
+						if (name in node) {
+							(node as any)[name] = value;
+						} else {
+							throw Error(`invalid property '${name}' for node`);
+						}
 					}
 				}
 			}

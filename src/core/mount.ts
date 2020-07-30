@@ -5,14 +5,14 @@ export function mount(thing: Template | (() => Template)) {
 	const template = typeof thing === "function" ? thing() : thing;
 
 	return {
-		on: async (root: HTMLElement) => {
+		on: (root: HTMLElement) => {
 			while (root.firstChild) {
 				root.removeChild(root.firstChild);
 			}
 
 			trackDOM(root);
 
-			const result = await template.render();
+			const result = template.render();
 
 			root.append(result);
 		}
