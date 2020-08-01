@@ -1,5 +1,4 @@
 import { Subscribable } from "./subscribable";
-import { Subscription } from "./subscription";
 import { wake, sleep, touch } from "../dependency-detection";
 import { Operator } from "./operator";
 
@@ -8,7 +7,7 @@ type EvaluatorFn<T = unknown> = () => T;
 export class Computed<T = unknown> extends Operator<T> {
 	public isPristine: boolean;
 	public isDisposed: boolean;
-	private deps: Map<Subscribable, Subscription>;
+	private deps: Map<Subscribable, (val: unknown) => void>;
 	private evaluator: EvaluatorFn<T>;
 	protected latestValue: T;
 
@@ -33,6 +32,7 @@ export class Computed<T = unknown> extends Operator<T> {
 		}
 
 		touch(this);
+
 		return this.latestValue;
 	}
 
@@ -57,7 +57,7 @@ export class Computed<T = unknown> extends Operator<T> {
 				dep.subscribe(_ => {
 					this.latestValue = this.evaluator();
 					this.publish(this.latestValue);
-				})
+				}, false)
 			);
 		}
 	}
@@ -69,11 +69,9 @@ export class Computed<T = unknown> extends Operator<T> {
 	 */
 	dispose() {
 		if (!this.isDisposed) {
-			this.deps.forEach(sub => sub.dispose());
+			Array.from(this.deps.entries()).forEach(([dep, fn]) => dep.unsubscribe(fn));
 			this.deps.clear();
 			this.isDisposed = true;
-		} else {
-			console.warn(`careful! you're trying to dispose a computed twice`, String(this.evaluator));
 		}
 	}
 }

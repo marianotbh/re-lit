@@ -1,5 +1,4 @@
 import { isOperator, Operator } from "../operators/operator";
-import { Subscription } from "../operators/subscription";
 import { addDisposeCallback } from "../dom-tracking";
 import { computed, observable, snap } from "../operators";
 import { event as addEvent, text as setText, attr as setAttr } from "../directives";
@@ -21,7 +20,7 @@ export default function (
 	templateStringsArray: TemplateStringsArray,
 	...args: Array<PossibleValue>
 ): Template {
-	return new Template(templateStringsArray, ...args);
+	return new Template(templateStringsArray, collectDependencies(), ...args);
 }
 
 function createTemplateFromString(innerHTML: string) {
@@ -30,17 +29,33 @@ function createTemplateFromString(innerHTML: string) {
 	return document.importNode(template.content, true);
 }
 
+const subscriptions = new Set<() => void>();
+
+export function addDependency(dispose: () => void) {
+	subscriptions.add(dispose);
+}
+
+export function collectDependencies(): Array<() => void> {
+	const subs = Array.from(subscriptions);
+	subscriptions.clear();
+	return subs;
+}
+
 export class Template {
 	private templateStringsArray: TemplateStringsArray;
 	private args: Array<PossibleValue>;
 	private parts: Map<number, PossibleValue>;
-	private deps: Set<Subscription | Computed>;
+	private deps: Set<() => void>;
 
-	constructor(templateStringsArray: TemplateStringsArray, ...args: Array<PossibleValue>) {
+	constructor(
+		templateStringsArray: TemplateStringsArray,
+		deps: Array<() => void>,
+		...args: Array<PossibleValue>
+	) {
 		this.templateStringsArray = templateStringsArray;
 		this.args = args;
 		this.parts = new Map();
-		this.deps = new Set();
+		this.deps = new Set(deps);
 	}
 
 	render() {
@@ -59,10 +74,14 @@ export class Template {
 
 		Array.from(template.childNodes).forEach(child => this.processNode(child));
 
+		const tracer = document.createComment("");
+
+		template.prepend(tracer);
+
 		if (this.deps.size > 0) {
-			addDisposeCallback(template, () => {
+			addDisposeCallback(tracer, () => {
 				this.deps.forEach(dep => {
-					dep.dispose();
+					dep();
 				});
 			});
 		}
@@ -92,10 +111,12 @@ export class Template {
 				if (typeof value === "object") {
 					const apply = setAttr(node);
 					const ref = computed(() => snap(value as Record<string, string | null>));
-					const sub = ref.subscribe(v => apply(v));
+					const sub = ref.subscribe(v => apply(v), false);
+					this.deps.add(() => {
+						ref.dispose();
+						ref.unsubscribe(sub);
+					});
 					ref.force();
-					this.deps.add(sub);
-					this.deps.add(ref);
 					attr.ownerElement!.removeAttribute(attr.name);
 				} else if (typeof value === "function") {
 					(value as (el: Element) => void)(node);
@@ -179,12 +200,14 @@ export class Template {
 								open.parentNode!.insertBefore(t.render(), close);
 							});
 						}
+					}, false);
+
+					this.deps.add(() => {
+						ref.dispose();
+						ref.unsubscribe(sub);
 					});
 
 					ref.force();
-
-					this.deps.add(sub);
-					this.deps.add(ref);
 				}
 
 				// evaluates text
@@ -192,9 +215,9 @@ export class Template {
 					const apply = setText(newNode);
 
 					if (isOperator(part)) {
-						const sub = part.subscribe(v => apply(v));
+						const sub = part.subscribe(v => apply(v), false);
 						apply(part.value);
-						this.deps.add(sub);
+						this.deps.add(() => part.unsubscribe(sub));
 					} else {
 						apply(part);
 					}

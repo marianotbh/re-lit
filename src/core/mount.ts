@@ -1,9 +1,7 @@
 import { trackDOM } from "../dom-tracking";
 import { Template } from "./pesos";
 
-export function mount(thing: Template | (() => Template)) {
-	const template = typeof thing === "function" ? thing() : thing;
-
+export function mount(templateCreator: () => Template) {
 	return {
 		on: (root: HTMLElement) => {
 			while (root.firstChild) {
@@ -12,7 +10,7 @@ export function mount(thing: Template | (() => Template)) {
 
 			trackDOM(root);
 
-			const result = template.render();
+			const result = templateCreator().render();
 
 			root.append(result);
 		}
