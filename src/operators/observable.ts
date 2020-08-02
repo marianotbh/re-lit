@@ -2,16 +2,14 @@ import { touch } from "../dependency-detection";
 import { Operator } from "./operator";
 
 export class Observable<T = unknown> extends Operator<T> {
-	protected latestValue: T;
-
-	constructor(initialValue: T) {
+	constructor(initialValue?: T) {
 		super();
 		this.latestValue = initialValue;
 	}
 
 	get value(): T {
 		touch(this);
-		return this.latestValue;
+		return this.latestValue!;
 	}
 
 	set value(v: T) {
@@ -21,21 +19,16 @@ export class Observable<T = unknown> extends Operator<T> {
 		}
 	}
 
-	/**
-	 * reads the observable's latest value without triggering any dependency detection features
-	 */
-	peek(): T {
-		return this.latestValue;
-	}
-
 	update(updater: (val: T) => T) {
 		if (typeof updater === "function") {
-			this.value = updater(this.latestValue);
+			this.value = updater(this.latestValue!);
 		}
+
+		return this.latestValue;
 	}
 }
 
-export const observable = <T = unknown>(initialValue: T) => {
+export const observable = <T = unknown>(initialValue?: T) => {
 	return new Observable(initialValue);
 };
 

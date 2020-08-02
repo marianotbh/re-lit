@@ -1,10 +1,18 @@
 import { isOperator, Operator } from "../operators/operator";
 import { addDisposeCallback } from "../dom-tracking";
-import { computed, observable, snap } from "../operators";
+import { computed, observable, flatten } from "../operators";
 import { event as addEvent, text as setText, attr as setAttr } from "../directives";
-import { Computed } from "../operators/computed";
+import { dispose } from "../dependency-detection";
 
 const isToken = (str: string) => /{{([0-9]*)}}/.test(str.toUpperCase());
+
+function queue(callback: () => void) {
+	if (typeof globalThis.queueMicrotask !== "function") {
+		setTimeout(callback, 0);
+	} else {
+		queueMicrotask(callback);
+	}
+}
 
 type PossibleValue =
 	| string
@@ -20,7 +28,7 @@ export default function (
 	templateStringsArray: TemplateStringsArray,
 	...args: Array<PossibleValue>
 ): Template {
-	return new Template(templateStringsArray, collectDependencies(), ...args);
+	return new Template(templateStringsArray, ...args);
 }
 
 function createTemplateFromString(innerHTML: string) {
@@ -29,64 +37,65 @@ function createTemplateFromString(innerHTML: string) {
 	return document.importNode(template.content, true);
 }
 
-const subscriptions = new Set<() => void>();
-
-export function addDependency(dispose: () => void) {
-	subscriptions.add(dispose);
-}
-
-export function collectDependencies(): Array<() => void> {
-	const subs = Array.from(subscriptions);
-	subscriptions.clear();
-	return subs;
-}
-
 export class Template {
 	private templateStringsArray: TemplateStringsArray;
 	private args: Array<PossibleValue>;
 	private parts: Map<number, PossibleValue>;
 	private deps: Set<() => void>;
 
-	constructor(
-		templateStringsArray: TemplateStringsArray,
-		deps: Array<() => void>,
-		...args: Array<PossibleValue>
-	) {
+	constructor(templateStringsArray: TemplateStringsArray, ...args: Array<PossibleValue>) {
 		this.templateStringsArray = templateStringsArray;
 		this.args = args;
 		this.parts = new Map();
-		this.deps = new Set(deps);
+		this.deps = new Set();
 	}
 
-	render() {
-		let template: DocumentFragment;
+	dispose(deps: Array<() => void>) {
+		deps.forEach(dep => this.deps.add(dep));
+		return this;
+	}
+
+	render<T extends Node = Element>(): T {
+		let el: Node;
 
 		if (this.args.length > 0) {
-			const innerHTML = this.args.reduce((str: string, arg, idx) => {
-				this.parts.set(idx, arg);
-				return (str += `{{${idx}}}${this.templateStringsArray[idx + 1]}`);
-			}, this.templateStringsArray[0]);
-			template = createTemplateFromString(innerHTML);
-		} else {
-			const innerHTML = this.templateStringsArray.join("");
-			template = createTemplateFromString(innerHTML);
-		}
+			const innerHTML = this.args
+				.reduce((str: string, arg, idx) => {
+					this.parts.set(idx, arg);
+					return (str += `{{${idx}}}${this.templateStringsArray[idx + 1]}`);
+				}, this.templateStringsArray[0])
+				.trim();
 
-		Array.from(template.childNodes).forEach(child => this.processNode(child));
-
-		const tracer = document.createComment("");
-
-		template.prepend(tracer);
-
-		if (this.deps.size > 0) {
-			addDisposeCallback(tracer, () => {
-				this.deps.forEach(dep => {
-					dep();
+			if (innerHTML === "{{0}}") {
+				el = document.createTextNode(innerHTML);
+				queue(() => {
+					this.processNode(el);
+					if (this.deps.size > 0) {
+						addDisposeCallback(el, () => this.deps.forEach(dep => dep()));
+					}
 				});
-			});
+			} else {
+				const template = createTemplateFromString(innerHTML);
+
+				if (template.childElementCount > 1 || template.firstElementChild === null) {
+					throw new Error("templates should contain a single parent node");
+				}
+
+				el = template.firstElementChild;
+
+				queue(() => {
+					this.processNode(el);
+					if (this.deps.size > 0) {
+						addDisposeCallback(el, () => this.deps.forEach(dep => dep()));
+					}
+				});
+			}
+		} else {
+			const innerHTML = this.templateStringsArray.join("").trim();
+			el = createTemplateFromString(innerHTML);
 		}
 
-		return template;
+		return el as T;
 	}
 
 	private processNode(node: Node) {
@@ -110,11 +119,11 @@ export class Template {
 
 				if (typeof value === "object") {
 					const apply = setAttr(node);
-					const ref = computed(() => snap(value as Record<string, string | null>));
-					const sub = ref.subscribe(v => apply(v), false);
+					const ref = computed(() => flatten(value as Record<string, string | null>));
+					ref.subscribe(v => apply(v));
 					this.deps.add(() => {
+						dispose(ref);
 						ref.dispose();
-						ref.unsubscribe(sub);
 					});
 					ref.force();
 					attr.ownerElement!.removeAttribute(attr.name);
@@ -178,7 +187,7 @@ export class Template {
 
 					const ref = computed(part as () => Template | Array<Template> | null);
 
-					const sub = ref.subscribe(async v => {
+					ref.subscribe(async v => {
 						if (v === null) {
 							while (open.nextSibling !== close) {
 								open.nextSibling?.remove();
@@ -200,11 +209,11 @@ export class Template {
 								open.parentNode!.insertBefore(t.render(), close);
 							});
 						}
-					}, false);
+					});
 
 					this.deps.add(() => {
+						dispose(ref);
 						ref.dispose();
-						ref.unsubscribe(sub);
 					});
 
 					ref.force();
@@ -215,7 +224,7 @@ export class Template {
 					const apply = setText(newNode);
 
 					if (isOperator(part)) {
-						const sub = part.subscribe(v => apply(v), false);
+						const sub = part.subscribe(v => apply(v));
 						apply(part.value);
 						this.deps.add(() => part.unsubscribe(sub));
 					} else {

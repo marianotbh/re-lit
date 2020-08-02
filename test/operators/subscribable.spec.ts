@@ -37,7 +37,6 @@ test("subscribable", () => {
 	// internally publishes the value 1
 	dummy.next(1);
 	dummy.next(1);
-	dummy.next(1);
 
 	expect(counter).toBe(1);
 });

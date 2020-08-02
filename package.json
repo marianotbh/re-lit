@@ -13,13 +13,14 @@
 	"author": "marianotbh",
 	"license": "ISC",
 	"dependencies": {
+		"jest-environment-node": "^26.2.0",
 		"reflect-metadata": "^0.1.13"
 	},
 	"devDependencies": {
-		"@types/jest": "^25.2.1",
+		"@types/jest": "^26.0.8",
 		"@types/node": "^13.1.6",
-		"jest": "^25.3.0",
-		"ts-jest": "^25.4.0",
-		"typescript": "^3.7.2"
+		"jest": "^26.2.2",
+		"ts-jest": "^26.1.4",
+		"typescript": "^3.9.7"
 	}
 }

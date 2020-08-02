@@ -1,5 +1,3 @@
-import { addDependency } from "../core/pesos";
-
 export abstract class Subscribable<T = unknown> {
 	private subs: Set<(val: T) => void>;
 
@@ -7,27 +5,16 @@ export abstract class Subscribable<T = unknown> {
 		this.subs = new Set();
 	}
 
-	subscribe(callback: (val: T) => void, add: boolean = true) {
-		if (add) {
-			addDependency(() => {
-				this.subs.delete(callback);
-			});
-		}
+	subscribe(callback: (val: T) => void) {
 		this.subs.add(callback);
 		return callback;
 	}
 
-	once(callback: (val: T) => void, add: boolean = true) {
+	once(callback: (val: T) => void) {
 		const sub = (val: T) => {
 			callback(val);
 			this.subs.delete(sub);
 		};
-
-		if (add) {
-			addDependency(() => {
-				this.subs.delete(sub);
-			});
-		}
 
 		this.subs.add(sub);
 
@@ -36,6 +23,10 @@ export abstract class Subscribable<T = unknown> {
 
 	unsubscribe(callback: (val: T) => void) {
 		this.subs.delete(callback);
+	}
+
+	dispose() {
+		this.subs.clear();
 	}
 
 	protected publish(value: T): void {

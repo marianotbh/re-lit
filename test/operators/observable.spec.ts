@@ -19,9 +19,8 @@ test("observable should return an observable instance", () => {
 test("value change should trigger subscription", done => {
 	const subscribable = observable(1);
 
-	const sub = subscribable.subscribe(val => {
+	subscribable.subscribe(val => {
 		expect(val).toBe(2);
-		sub.dispose();
 		done();
 	});
 

@@ -5,7 +5,6 @@ describe("ref directive", () => {
 		const observable = of<HTMLSpanElement | null>(null);
 
 		observable.once(node => {
-			debugger;
 			expect(node instanceof HTMLSpanElement).toBeTruthy();
 			done();
 		});
