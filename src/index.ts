@@ -3,6 +3,7 @@ export { html } from "./core/html";
 export { createElement } from "./core/createElement";
 
 export { compose, isComposed } from "./operators/compose";
+export { defer } from "./operators/defer";
 export { effect, cause } from "./operators/effect";
 export { flatten } from "./operators/flatten";
 export { lazy } from "./operators/lazy";
