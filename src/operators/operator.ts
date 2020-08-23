@@ -1,22 +1,8 @@
-import { Subscribable } from "./subscribable";
+import { Observable, isObservable } from "./observe";
+import { Composed, isComposed } from "./compose";
 
-export abstract class Operator<T = unknown> extends Subscribable<T> {
-	protected latestValue: T | undefined;
-	abstract get value(): T;
-	abstract set value(val: T);
+export type Operator<T = unknown> = Observable<T> | Composed<T>;
 
-	/**
-	 * reads the observable's latest value without triggering any dependency detection features
-	 */
-	peek(): T | undefined {
-		return this.latestValue;
-	}
-}
-
-export function isOperator<T = unknown>(value: any): value is Operator<T> {
-	return value instanceof Operator;
-}
-
-export function isArrayOperator<TItem = unknown>(value: any): value is Operator<TItem[]> {
-	return value instanceof Operator && Array.isArray(value.peek());
+export function isOperator<T = unknown>(value: {}): value is Operator<T> {
+	return isComposed(value) || isObservable(value);
 }

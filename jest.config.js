@@ -1,7 +1,7 @@
 module.exports = {
 	testEnvironment: "jsdom",
-	roots: ["<rootDir>/test"],
 	transform: {
+		"^.+\\.jsx?$": "babel-jest",
 		"^.+\\.tsx?$": "ts-jest"
 	},
 	testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",

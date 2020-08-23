@@ -1,10 +1,8 @@
-import { Template } from "../core/pesos";
+type DefaultExport<T extends any[]> = { default: (...args: T) => DocumentFragment };
 
-type DefaultExport<T> = { default: (args: T) => Template };
-
-export function lazy<T extends {} = {}>(loader: () => Promise<DefaultExport<T>>) {
-	return async (args?: T) => {
+export function lazy<T extends any[]>(loader: () => Promise<DefaultExport<T>>) {
+	return async (...args: T) => {
 		const { default: template } = await loader();
-		return template(args ?? ({} as T));
+		return template(...args);
 	};
 }

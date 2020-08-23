@@ -1,18 +1,6 @@
-import { trackDOM } from "../dom-tracking";
-import { Template } from "./pesos";
+import { trackDOM } from "../dom";
 
-export function mount(app: Template) {
-	return {
-		on: (root: HTMLElement) => {
-			while (root.firstChild) {
-				root.removeChild(root.firstChild);
-			}
-
-			trackDOM(root);
-
-			const result = app.render();
-
-			root.append(result);
-		}
-	};
+export function render(app: DocumentFragment, root: HTMLElement = document.body) {
+	trackDOM(root);
+	root.append(app);
 }
