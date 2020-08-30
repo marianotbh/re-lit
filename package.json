@@ -1,7 +1,14 @@
 {
-	"name": "pesos",
+	"name": "re-lit",
 	"version": "1.0.0",
 	"description": "yet another reactive library",
+	"author": "marianotbh",
+	"licenses": [
+		{
+			"type": "MIT",
+			"url": "http://www.opensource.org/licenses/mit-license.php"
+		}
+	],
 	"main": "build/index.js",
 	"types": "build/index.d.ts",
 	"scripts": {
@@ -9,8 +16,6 @@
 		"build": "tsc -p tsconfig.src.json",
 		"test": "jest --watch"
 	},
-	"author": "marianotbh",
-	"license": "ISC",
 	"dependencies": {},
 	"devDependencies": {
 		"@types/jest": "^26.0.8",
