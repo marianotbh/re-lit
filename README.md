@@ -54,13 +54,13 @@ const username = observe('')
 const password = observe('')
 
 username.subscribe(async value => {
-	const isAvailable = await fetch(`http://some-validation-api.com?username=${value}`).then(res => res.json())
-	if (!isAvailable) alert('username taken!!')
+  const isAvailable = await fetch(`http://some-validation-api.com?username=${value}`).then(res => res.json())
+  if (!isAvailable) alert('username taken!!')
 })
 
 password.subscribe(value => {
-	const isStrong = somePasswordTestingLogic(value)
-	if (!isStrong) alert('password is too weak!!')
+  const isStrong = somePasswordTestingLogic(value)
+  if (!isStrong) alert('password is too weak!!')
 })
 ```
 
@@ -79,18 +79,18 @@ to define a new component in re-lit you need to import two things: `html` and `c
 import { createElement, html } from 're-lit'
 
 type TodoProps = {
-	text: string
-	done: boolean
+  text: string
+  done: boolean
 }
 
 export default createElement<TodoProps>(
-	({ text, done }) =>
-		html`
-			<label>
-				<input type="checkbox" checked=${done} />
-				${text}
-			</label>
-		`
+  ({ text, done }) =>
+    html`
+      <label>
+        <input type="checkbox" checked=${done} />
+        ${text}
+      </label>
+    `
 )
 ```
 
@@ -101,18 +101,18 @@ import { createElement, html, observe } from 're-lit'
 import Todo from './Todo'
 
 const TodoList = createElement(() => {
-	// for the sake of the example use any[]
-	const todos = observe<any[]>([])
+  // for the sake of the example use any[]
+  const todos = observe<any[]>([])
 
-	(async () => {
-		const todos.value = await fetch('...').then(res => res.json())
-	})()
+  (async () => {
+    const todos.value = await fetch('...').then(res => res.json())
+  })()
 
-	return html`
-		<div id="todos-container">
-			${todos.value.map(Todo)}
-		</div>
-	`
+  return html`
+    <div id="todos-container">
+      ${todos.value.map(Todo)}
+    </div>
+  `
 })
 
 export default TodoList
@@ -126,12 +126,12 @@ import { render, html } from 're-lit'
 import TodoList from './components/TodoList'
 
 const App = () => html`
-	<h1>
-		hello, world!
-	</h1>
-	<div>
-		${TodoList()}
-	</div>
+  <h1>
+    hello, world!
+  </h1>
+  <div>
+    ${TodoList()}
+  </div>
 `
 
 render(App(), document.body)
@@ -151,21 +151,21 @@ import { html, observe } from 're-lit'
 const isDisabled = observe(false)
 
 const template = html`
-	<button
-		${{
-			id: 'clickity',
-			type: 'button',
-			// return null to remove the attribute or it should not be added:
-			disabled: () => (isDisabled.value ? "true" : null)
-			// this will work too, but will leave an empty attribute
-			// if provided a falsy value different to null:
-			disabled: isDisabled
-			// this will not be reactive:
-			disabled: isDisabled.value
-		}}
-	>
-		hello, world
-	</button>
+  <button
+    ${{
+      id: 'clickity',
+      type: 'button',
+      // return null to remove the attribute or it should not be added:
+      disabled: () => (isDisabled.value ? "true" : null)
+      // this will work too, but will leave an empty attribute
+      // if provided a falsy value different to null:
+      disabled: isDisabled
+      // this will not be reactive:
+      disabled: isDisabled.value
+    }}
+  >
+    hello, world
+  </button>
 `
 ```
 
@@ -195,11 +195,11 @@ const inputValue = observe('')
 // sadly it's not possible through generics to define the event target's type
 // so, if you're using TypeScript, some casting has to be done for this part
 const template = html`
-	<input
-		type="text"
-		value=${inputValue}
-		onchange=${(ev: Event) => (inputValue.value = (ev.target as HTMLInputElement).value)}
-	/>
+  <input
+    type="text"
+    value=${inputValue}
+    onchange=${(ev: Event) => (inputValue.value = (ev.target as HTMLInputElement).value)}
+  />
 `
 ```
 
@@ -213,15 +213,15 @@ import { html, observe } from 're-lit'
 // using plain templates:
 
 const childTemplate = html`
-	<div>
-		hello, world!
-	</div>
+  <div>
+    hello, world!
+  </div>
 `
 
 const parentTemplate = html`
-	<div>
-		${childTemplate}
-	</div>
+  <div>
+    ${childTemplate}
+  </div>
 `
 
 // nesting element templates:
@@ -233,32 +233,32 @@ const ParentElement = createElement(() => html` <div>${ChildElement({ who: 'worl
 // conditional templates:
 
 const Dashboard = createElement(() => {
-	const isLoggedIn = observe(false)
+  const isLoggedIn = observe(false)
 
-	return html`${() => (isLoggedIn.value ? ChildElement({ who: 'user' }) : null)}`
+  return html`${() => (isLoggedIn.value ? ChildElement({ who: 'user' }) : null)}`
 })
 
 // arrays of templates:
 
 const TodoList = createElement(() => {
-	const todos = observe([
-		{ text: 'play games', done: true },
-		{ text: 'work', done: false }
-		{ text: 'work on personal projects instead of working', done: true },
-	])
+  const todos = observe([
+    { text: 'play games', done: true },
+    { text: 'work', done: false }
+    { text: 'work on personal projects instead of working', done: true },
+  ])
 
-	return html`
-		<div>
-			${() => todos.value.map(todo =>
-				html`
-					<label>
-						${todo.text}
-						<input type="checkbox" checked=${todo.done}
-					</label>
-				`
-			)}
-		</div>
-	`
+  return html`
+    <div>
+      ${() => todos.value.map(todo =>
+        html`
+          <label>
+            ${todo.text}
+            <input type="checkbox" checked=${todo.done}
+          </label>
+        `
+      )}
+    </div>
+  `
 })
 ```
 
@@ -268,15 +268,15 @@ there's not many use cases for this, but since we're working with actual DOM Nod
 
 ```typescript
 const complexTemplate = html`
-	<div>
-		<p>
-			<small>get me!!</small>
-			<small>not me</small>
-		</p>
-		<p>
-			...
-		</p>
-	</div>
+  <div>
+    <p>
+      <small>get me!!</small>
+      <small>not me</small>
+    </p>
+    <p>
+      ...
+    </p>
+  </div>
 `
 
 const gotYou = complexTemplate.querySelector('div p:first-child small:first-child')
@@ -290,15 +290,15 @@ but that's boring, when we can just pass a function to the tag to obtain the nod
 import { html } from 're-lit'
 
 const complexTemplate = html`
-	<div>
-		<p>
-			<small ${gotYou => console.log(gotYou.textContent)}>get me!!</small>
-			<small>not me</small>
-		</p>
-		<p>
-			...
-		</p>
-	</div>
+  <div>
+    <p>
+      <small ${gotYou => console.log(gotYou.textContent)}>get me!!</small>
+      <small>not me</small>
+    </p>
+    <p>
+      ...
+    </p>
+  </div>
 `
 ```
 
