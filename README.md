@@ -21,9 +21,9 @@ just like Vue under the hood, re-lit is based on the publish/subscribe pattern. 
 in order to handle reactivity inside your components, we have two operators: `observe` (also exported as `of` for easier use) and `compose`, if you're familiar with Vue's composition API,
 these are your very own `ref` and `computed` functions. and you'll find they work very similarly:
 
--   `observe` stores a primitive value that can be subscribed to, and that will trigger
-    effect updates everytime its value is updated.
--   `compose` takes in a function that will be re-evaluated everytime one of its dependencies change.
+- `observe` stores a primitive value that can be subscribed to, and that will trigger
+  effect updates everytime its value is updated.
+- `compose` takes in a function that will be re-evaluated everytime one of its dependencies change.
 
 heres how you use them:
 
@@ -70,9 +70,9 @@ components are a basic part of every UI framework. they reduce the size of your 
 
 to define a new component in re-lit you need to import two things: `html` and `createElement`.
 
--   `html`: if you're familiar with [lit-element](https://lit-element.polymer-project.org/) or [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) , this function is does pretty much the same. under the hood, it converts the template string into a DocumentFragment element
+- `html`: if you're familiar with [lit-element](https://lit-element.polymer-project.org/) or [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) , this function is does pretty much the same. under the hood, it converts the template string into a DocumentFragment element
 
-*   `createElement`: because components in re-lit can have multiple root elements, this helper function basically creates a reference point for the component in the DOM, where all loose subscriptions will be attached to when the component is created, and disposed with when it's removed from the DOM.
+* `createElement`: because components in re-lit can have multiple root elements, this helper function basically creates a reference point for the component in the DOM, where all loose subscriptions will be attached to when the component is created, and disposed with when it's removed from the DOM.
 
 ```typescript
 // Todo.ts
@@ -126,12 +126,8 @@ import { render, html } from 're-lit'
 import TodoList from './components/TodoList'
 
 const App = () => html`
-  <h1>
-    hello, world!
-  </h1>
-  <div>
-    ${TodoList()}
-  </div>
+  <h1>hello, world!</h1>
+  <div>${TodoList()}</div>
 `
 
 render(App(), document.body)
@@ -273,9 +269,7 @@ const complexTemplate = html`
       <small>get me!!</small>
       <small>not me</small>
     </p>
-    <p>
-      ...
-    </p>
+    <p>...</p>
   </div>
 `
 
@@ -295,9 +289,7 @@ const complexTemplate = html`
       <small ${gotYou => console.log(gotYou.textContent)}>get me!!</small>
       <small>not me</small>
     </p>
-    <p>
-      ...
-    </p>
+    <p>...</p>
   </div>
 `
 ```
