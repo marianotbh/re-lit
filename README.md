@@ -6,7 +6,7 @@ a more functional approach to lit-html, inspired by React and Vue.
 
 re-lit is yet another reactive UI library/framework, based on lit-html but mostly inspired on React's and Vue's approach to functional components.
 
-## 🚀 getting started
+## 🚀 getting started (not available yet)
 
 install through npm
 
@@ -28,7 +28,7 @@ these are your very own `ref` and `computed` functions. and you'll find they wor
 heres how you use them:
 
 ```typescript
-import { observe, compose } from 're-lit'
+import {observe, compose} from 're-lit'
 
 const firstName = observe('')
 const lastName = observe('')
@@ -48,13 +48,15 @@ console.log(fullName.value) // second read outputs: 'Jane Doe'
 you can also subscribe to these operators to perform some side logic whenever their values are updated:
 
 ```typescript
-import { observe } from 're-lit'
+import {observe} from 're-lit'
 
 const username = observe('')
 const password = observe('')
 
 username.subscribe(async value => {
-  const isAvailable = await fetch(`http://some-validation-api.com?username=${value}`).then(res => res.json())
+  const isAvailable = await fetch(`http://some-validation-api.com?username=${value}`).then(res =>
+    res.json()
+  )
   if (!isAvailable) alert('username taken!!')
 })
 
@@ -76,7 +78,7 @@ to define a new component in re-lit you need to import two things: `html` and `c
 
 ```typescript
 // Todo.ts
-import { createElement, html } from 're-lit'
+import {createElement, html} from 're-lit'
 
 type TodoProps = {
   text: string
@@ -84,7 +86,7 @@ type TodoProps = {
 }
 
 export default createElement<TodoProps>(
-  ({ text, done }) =>
+  ({text, done}) =>
     html`
       <label>
         <input type="checkbox" checked=${done} />
@@ -122,7 +124,7 @@ creating a basic application is easy. just import `render` and pass a template a
 i bet this looks pretty familiar already.
 
 ```typescript
-import { render, html } from 're-lit'
+import {render, html} from 're-lit'
 import TodoList from './components/TodoList'
 
 const App = () => html`
@@ -170,7 +172,7 @@ const template = html`
 similar to React, properties' bindings only work one-way. this means that the property will be updated when the observable changes value, but the observable will not be updated when the property changes value:
 
 ```typescript
-import { html, observe } from 're-lit'
+import {html, observe} from 're-lit'
 
 const inputValue = observe('')
 
@@ -184,7 +186,7 @@ events in re-lit don't require any special syntax, unlike vue or lit-html do wit
 following the last example:
 
 ```typescript
-import { html, observe } from 're-lit'
+import {html, observe} from 're-lit'
 
 const inputValue = observe('')
 
@@ -263,39 +265,53 @@ const TodoList = createElement(() => {
 there's not many use cases for this, but since we're working with actual DOM Nodes, you could use querySelector or anything you'd prefer to obtain a reference to any of the nodes defined inside a template string like this:
 
 ```typescript
-const complexTemplate = html`
-  <div>
-    <p>
-      <small>get me!!</small>
-      <small>not me</small>
-    </p>
-    <p>...</p>
-  </div>
-`
+import {render, html} from 're-lit'
 
-const gotYou = complexTemplate.querySelector('div p:first-child small:first-child')
+render(
+  html`
+    <div>
+      <p>
+        <small>get me!!</small>
+        <small>not me</small>
+      </p>
+      <p>...</p>
+    </div>
+  `,
+  document.body
+)
 
-console.log(gotYou.textContent)
+const ref = document.body.querySelector('div p:first-child small:first-child')
+
+console.log(ref.textContent)
 ```
 
-but that's boring, when we can just pass a function to the tag to obtain the node we want to treat in any particular way:
+But that's boring, when we can just pass a function to the tag to obtain the node we want to treat in any particular way:
 
 ```typescript
-import { html } from 're-lit'
+import {render, html} from 're-lit'
 
-const complexTemplate = html`
-  <div>
-    <p>
-      <small ${gotYou => console.log(gotYou.textContent)}>get me!!</small>
-      <small>not me</small>
-    </p>
-    <p>...</p>
-  </div>
-`
+let elementRef: HTMLElement
+
+render(
+  html`
+    <div>
+      <p>
+        <small ${ref => (elementRef = ref)}>get me!!</small>
+        <small>not me</small>
+      </p>
+      <p>...</p>
+    </div>
+  `,
+  document.body
+)
+
+console.log(elementRef.textContent) // outputs: get me!!
 ```
 
 ## 🤓 a little context and disclaimer
 
-coming from React, i've been loving the DX it has to offer. when i discovered Polymer i really loved the idea of "framework-agnostic" components. but working with classes and lifecycles all over was kinda off-putting and i never really found a good use for Shadow DOM, so it was mostly an annoyance and required a .
-this is mostly an experiment i've worked on for fun because i've always been interested on how reactive frameworks work. ever since i've
-started working with KnockoutJS in my first job. feedback is welcome but this is just a hobby, i'll keep working on it on my free time and probably scrap it all over when
+when i discovered WebComponents, i really liked the idea of framework agnostic components. and digging deeper into the Polymer project/lit-html i also liked the concept of using some minimal-API library to add stuff like reactivity and data-binding to the DOM. but coming from React, having to work with classes and lifecycles all over again kinda set me off, and i never actually found a good use for Shadow DOM when most CSS frameworks today offer end-to-end theming, so it was mostly an annoyance and required a lot of repetitive setup to initialize a simple project.
+
+ever since i landed my first job, working with KnockoutJS inside a custom-made framework for that gig always required me to dig deeper into how the library worked in its insides. so this is mostly an experiment i've worked on for fun because i've been interested reactive libraries ever since.
+
+feedback is welcome but this is just a hobby, i'll keep working on it on my free time and probably scrap it all over many times until i actually release it.

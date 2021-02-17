@@ -1,12 +1,6 @@
-export { render } from "./core/mount";
-export { html } from "./core/html";
-export { createElement } from "./core/createElement";
-
-export { compose, isComposed } from "./operators/compose";
-export { defer } from "./operators/defer";
-export { effect, cause } from "./operators/effect";
-export { flatten } from "./operators/flatten";
-export { lazy } from "./operators/lazy";
-export { map } from "./operators/map";
-export { observe, observe as of, isObservable } from "./operators/observe";
-export { unwrap } from "./operators/unwrap";
+export * from './directives'
+export {default as defineElement} from './elements/define-element'
+export {default as html} from './html'
+export {default as render} from './render'
+export {default as use} from './use'
+export {default as run} from './run'

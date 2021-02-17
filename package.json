@@ -1,29 +1,34 @@
 {
-	"name": "re-lit",
-	"version": "1.0.0",
-	"description": "yet another reactive library",
-	"author": "marianotbh",
-	"licenses": [
-		{
-			"type": "MIT",
-			"url": "http://www.opensource.org/licenses/mit-license.php"
-		}
-	],
-	"main": "build/index.js",
-	"types": "build/index.d.ts",
-	"scripts": {
-		"start": "tsc -w -p tsconfig.src.json",
-		"build": "tsc -p tsconfig.src.json",
-		"test": "jest --watch"
-	},
-	"dependencies": {},
-	"devDependencies": {
-		"@types/jest": "^26.0.8",
-		"@types/node": "^13.1.6",
-		"babel-jest": "^26.3.0",
-		"jest": "^26.2.2",
-		"jest-environment-node": "^26.2.0",
-		"ts-jest": "^26.1.4",
-		"typescript": "^3.9.7"
-	}
+  "name": "re-lit",
+  "version": "1.0.0",
+  "description": "yet another reactive library",
+  "author": "marianotbh",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/mit-license.php"
+    }
+  ],
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "start": "tsc -w -p tsconfig.src.json",
+    "build": "tsc -p tsconfig.src.json",
+    "test": "jest --watch",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "immer": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.8",
+    "@types/node": "^13.1.6",
+    "babel-jest": "^26.3.0",
+    "eslint": "^7.20.0",
+    "jest": "^26.2.2",
+    "jest-environment-node": "^26.2.0",
+    "prettier": "^2.2.1",
+    "ts-jest": "^26.1.4",
+    "typescript": "^4.1.5"
+  }
 }

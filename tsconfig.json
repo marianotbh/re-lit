@@ -1,15 +1,16 @@
 {
-	"compilerOptions": {
-		"baseUrl": ".",
-		"outDir": "build",
-		"lib": ["DOM", "DOM.Iterable", "es2020"],
-		"strict": true,
-		"declaration": true,
-		"module": "commonjs",
-		"target": "es2019",
-		"sourceMap": true,
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-		"types": ["node", "jest"]
-	}
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "build",
+    "lib": ["DOM", "DOM.Iterable", "es2020"],
+    "strict": true,
+    "declaration": true,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "module": "CommonJS",
+    "target": "es2019",
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts"]
 }
