@@ -18,7 +18,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "immer": "^8.0.1"
+    "immer": "^9.0.6"
   },
   "devDependencies": {
     "@types/jest": "^26.0.8",
